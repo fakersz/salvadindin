@@ -39,7 +39,19 @@ psql -U salvadindin_user -d salvadindin -f database/schema.sql
 
 ## Prints
 
-As imagens de demonstracao ficam na pasta `imgprints`.
+<p>
+  <img src="imgprints/print.jpeg" alt="Print do Salvadindin" width="420">
+  <img src="imgprints/print2.jpeg" alt="Print do dashboard do Salvadindin" width="420">
+  <img src="imgprints/print3.jpeg" alt="Print de tela financeira do Salvadindin" width="420">
+  <img src="imgprints/print4.jpeg" alt="Print de tela do Salvadindin" width="420">
+  <img src="imgprints/print44.jpeg" alt="Print de painel do Salvadindin" width="420">
+  <img src="imgprints/a.jpeg" alt="Print da aplicacao Salvadindin" width="420">
+  <img src="imgprints/aa.jpeg" alt="Print da interface do Salvadindin" width="420">
+  <img src="imgprints/as.jpeg" alt="Print de recursos do Salvadindin" width="420">
+  <img src="imgprints/assd.jpeg" alt="Print de demonstracao do Salvadindin" width="420">
+  <img src="imgprints/sada.jpeg" alt="Print do sistema Salvadindin" width="420">
+  <img src="imgprints/safc.jpeg" alt="Print final do Salvadindin" width="420">
+</p>
 
 ## Seguranca
 
