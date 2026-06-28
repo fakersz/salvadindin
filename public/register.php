@@ -11,15 +11,17 @@ if (current_user()) {
 $errors = [];
 $name = '';
 $email = '';
+$whatsappPhone = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $name = trim((string) ($_POST['name'] ?? ''));
     $email = trim((string) ($_POST['email'] ?? ''));
+    $whatsappPhone = trim((string) ($_POST['whatsapp_phone'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
 
-    $result = register_user($name, $email, $password);
+    $result = register_user($name, $email, $password, $whatsappPhone);
 
     if ($result['ok']) {
         redirect('/dashboard.php');
@@ -34,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Criar conta | Salva DinDin</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-1">
+    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-3">
     <script>
         (() => {
             const savedTheme = localStorage.getItem('salvadindin-theme');
@@ -47,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button type="button" class="theme-toggle theme-toggle-floating auth-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
     <main class="auth-shell">
         <section class="auth-showcase" aria-label="Salva DinDin">
-            <img src="/assets/img/logo.png" alt="Salva DinDin Controle Financeiro">
+            <img src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             <div class="showcase-note">
                 <span aria-hidden="true">↗</span>
                 <p>Comece organizando receitas, despesas e metas em um painel simples para <strong>decidir melhor.</strong></p>
@@ -56,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <section class="auth-panel">
             <div class="auth-brand">
-                <img src="/assets/img/logo2.png" alt="Salva DinDin Controle Financeiro">
+                <img src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             </div>
 
             <div class="auth-copy">
@@ -94,6 +96,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </label>
 
                 <label>
+                    <span>Celular / WhatsApp</span>
+                    <span class="input-shell">
+                        <svg aria-hidden="true" viewBox="0 0 24 24">
+                            <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7A2 2 0 0 1 22 16.9z"></path>
+                        </svg>
+                        <input type="tel" name="whatsapp_phone" value="<?= e($whatsappPhone) ?>" autocomplete="tel" inputmode="tel" placeholder="Ex.: 28992526083" required>
+                    </span>
+                </label>
+
+                <label>
                     <span>Senha</span>
                     <span class="input-shell">
                         <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -123,6 +135,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </section>
     </main>
     <footer class="auth-footer">© 2024 Salva DinDin. Todos os direitos reservados.</footer>
-    <script src="/assets/js/app.js?v=responsive-1"></script>
+    <script src="/assets/js/app.js?v=responsive-3"></script>
 </body>
 </html>

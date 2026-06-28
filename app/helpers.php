@@ -100,6 +100,15 @@ function format_date(?string $date): string
     return date('d/m/Y', strtotime($date));
 }
 
+function format_datetime_br(?string $date): string
+{
+    if (!$date) {
+        return 'Nunca acessou';
+    }
+
+    return date('d/m/Y H:i', strtotime($date));
+}
+
 function month_bounds(): array
 {
     return [

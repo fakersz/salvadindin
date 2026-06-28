@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../app/auth.php';
 $admin = require_admin();
 $errors = [];
 $success = flash('success');
+$plans = plan_options();
 
 function post_date_or_null(string $key): ?string
 {
@@ -19,6 +20,30 @@ function pg_bool(bool $value): string
     return $value ? 'true' : 'false';
 }
 
+function plan_from_post(array $plans): ?array
+{
+    $planKey = (string) ($_POST['plan_key'] ?? '');
+
+    return $plans[$planKey] ?? null;
+}
+
+function admin_whatsapp_phone_from_post(bool $required, array &$errors, ?int $ignoreUserId = null): ?string
+{
+    $rawPhone = trim((string) ($_POST['whatsapp_phone'] ?? ''));
+
+    if ($rawPhone === '' && !$required) {
+        return null;
+    }
+
+    $phone = validate_whatsapp_phone($rawPhone, $errors);
+
+    if ($phone !== '' && whatsapp_phone_exists($phone, $ignoreUserId)) {
+        $errors[] = 'Este celular ja esta vinculado a outra conta.';
+    }
+
+    return $phone !== '' ? $phone : null;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -28,9 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = strtolower(trim((string) ($_POST['email'] ?? '')));
         $password = (string) ($_POST['password'] ?? '');
-        $planName = trim((string) ($_POST['plan_name'] ?? 'Teste'));
+        $whatsappPhone = admin_whatsapp_phone_from_post(true, $errors);
+        $selectedPlan = plan_from_post($plans);
         $planPrice = str_replace(',', '.', (string) ($_POST['plan_price'] ?? '0'));
-        $expiresAt = post_date_or_null('plan_expires_at');
         $isAdmin = isset($_POST['is_admin']);
 
         if (strlen($name) < 2) {
@@ -49,6 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Informe um valor de plano valido.';
         }
 
+        if (!$selectedPlan) {
+            $errors[] = 'Escolha um plano valido.';
+        }
+
         if (!$errors) {
             $stmt = db()->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
             $stmt->execute(['email' => $email]);
@@ -59,20 +88,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
+            $expiresAt = $selectedPlan['days'] !== null
+                ? date('Y-m-d', strtotime('+' . (int) $selectedPlan['days'] . ' days'))
+                : null;
+
             $stmt = db()->prepare(
                 'INSERT INTO users
-                    (name, email, password, is_admin, account_status, plan_name, plan_price, plan_expires_at)
+                    (name, email, password, whatsapp_phone, is_admin, account_status, plan_name, plan_price, plan_expires_at)
                  VALUES
-                    (:name, :email, :password, :is_admin, :account_status, :plan_name, :plan_price, :plan_expires_at)
+                    (:name, :email, :password, :whatsapp_phone, :is_admin, :account_status, :plan_name, :plan_price, :plan_expires_at)
                  RETURNING id'
             );
             $stmt->execute([
                 'name' => $name,
                 'email' => $email,
                 'password' => password_hash($password, PASSWORD_DEFAULT),
+                'whatsapp_phone' => $whatsappPhone,
                 'is_admin' => pg_bool($isAdmin),
                 'account_status' => 'active',
-                'plan_name' => $planName !== '' ? $planName : 'Teste',
+                'plan_name' => $selectedPlan['name'],
                 'plan_price' => number_format((float) $planPrice, 2, '.', ''),
                 'plan_expires_at' => $expiresAt,
             ]);
@@ -86,12 +120,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_user') {
         $userId = (int) ($_POST['user_id'] ?? 0);
         $status = (string) ($_POST['account_status'] ?? 'active');
-        $planName = trim((string) ($_POST['plan_name'] ?? 'Teste'));
+        $selectedPlan = plan_from_post($plans);
         $planPrice = str_replace(',', '.', (string) ($_POST['plan_price'] ?? '0'));
         $expiresAt = post_date_or_null('plan_expires_at');
         $lastPaymentAt = post_date_or_null('last_payment_at');
         $adminNotes = trim((string) ($_POST['admin_notes'] ?? ''));
         $isAdmin = isset($_POST['is_admin']);
+        $whatsappPhone = admin_whatsapp_phone_from_post(false, $errors, $userId > 0 ? $userId : null);
 
         if ($userId <= 0) {
             $errors[] = 'Cliente invalido.';
@@ -105,30 +140,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Informe um valor de plano valido.';
         }
 
+        if (!$selectedPlan) {
+            $errors[] = 'Escolha um plano valido.';
+        }
+
         if (!$errors) {
-            $stmt = db()->prepare(
-                'UPDATE users
-                 SET is_admin = :is_admin,
-                     account_status = :account_status,
-                     plan_name = :plan_name,
-                     plan_price = :plan_price,
-                     plan_expires_at = :plan_expires_at,
-                     last_payment_at = :last_payment_at,
-                     admin_notes = :admin_notes
-                 WHERE id = :id'
-            );
+            $pdo = db();
+            $pdo->beginTransaction();
+
+            try {
+                $planName = $selectedPlan['name'];
+
+                $stmt = $pdo->prepare(
+                    'UPDATE users
+                     SET is_admin = :is_admin,
+                         whatsapp_phone = :whatsapp_phone,
+                         account_status = :account_status,
+                         plan_name = :plan_name,
+                         plan_price = :plan_price,
+                         plan_expires_at = :plan_expires_at,
+                         last_payment_at = :last_payment_at,
+                         admin_notes = :admin_notes
+                     WHERE id = :id'
+                );
+                $stmt->execute([
+                    'id' => $userId,
+                    'is_admin' => pg_bool($isAdmin),
+                    'whatsapp_phone' => $whatsappPhone,
+                    'account_status' => $status,
+                    'plan_name' => $planName,
+                    'plan_price' => number_format((float) $planPrice, 2, '.', ''),
+                    'plan_expires_at' => $expiresAt,
+                    'last_payment_at' => $lastPaymentAt,
+                    'admin_notes' => $adminNotes !== '' ? $adminNotes : null,
+                ]);
+
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                $errors[] = 'Nao foi possivel atualizar a conta.';
+            }
+
+            if (!$errors) {
+                flash('success', 'Conta atualizada.');
+                redirect('/admin/');
+            }
+        }
+    }
+
+    if ($action === 'delete_user') {
+        $userId = (int) ($_POST['user_id'] ?? 0);
+
+        if ($userId <= 0) {
+            $errors[] = 'Cliente invalido.';
+        }
+
+        if ($userId === (int) $admin['id']) {
+            $errors[] = 'Voce nao pode excluir a propria conta admin logada.';
+        }
+
+        if (!$errors) {
+            $stmt = db()->prepare('DELETE FROM users WHERE id = :id AND id <> :admin_id');
             $stmt->execute([
                 'id' => $userId,
-                'is_admin' => pg_bool($isAdmin),
-                'account_status' => $status,
-                'plan_name' => $planName !== '' ? $planName : 'Teste',
-                'plan_price' => number_format((float) $planPrice, 2, '.', ''),
-                'plan_expires_at' => $expiresAt,
-                'last_payment_at' => $lastPaymentAt,
-                'admin_notes' => $adminNotes !== '' ? $adminNotes : null,
+                'admin_id' => $admin['id'],
             ]);
 
-            flash('success', 'Conta atualizada.');
+            flash('success', $stmt->rowCount() > 0 ? 'Conta excluida.' : 'Conta nao encontrada.');
             redirect('/admin/');
         }
     }
@@ -205,7 +286,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('success', 'Cobranca cancelada.');
         redirect('/admin/');
     }
+
+    if ($action === 'delete_billing') {
+        $billingId = (int) ($_POST['billing_id'] ?? 0);
+
+        if ($billingId <= 0) {
+            $errors[] = 'Cobranca invalida.';
+        }
+
+        if (!$errors) {
+            $stmt = db()->prepare('DELETE FROM billing_records WHERE id = :id');
+            $stmt->execute(['id' => $billingId]);
+
+            flash('success', $stmt->rowCount() > 0 ? 'Cobranca excluida.' : 'Cobranca nao encontrada.');
+            redirect('/admin/');
+        }
+    }
+
 }
+
+db()->exec(
+    "UPDATE users
+     SET account_status = 'expired'
+     WHERE is_admin = FALSE
+       AND account_status = 'active'
+       AND COALESCE(NULLIF(plan_name, ''), 'free') <> 'free'
+       AND plan_expires_at IS NOT NULL
+       AND plan_expires_at < CURRENT_DATE"
+);
 
 $stmt = db()->query(
     "SELECT
@@ -218,9 +326,9 @@ $stmt = db()->query(
 $stats = $stmt->fetch();
 
 $users = db()->query(
-    'SELECT *
-     FROM users
-     ORDER BY is_admin DESC, created_at DESC'
+    "SELECT u.*, COALESCE(NULLIF(u.plan_name, ''), 'free') AS plan_name
+     FROM users u
+     ORDER BY is_admin DESC, created_at DESC"
 )->fetchAll();
 
 $billings = db()->query(
@@ -242,6 +350,7 @@ $billingLabels = [
     'paid' => 'Pago',
     'canceled' => 'Cancelado',
 ];
+
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -249,7 +358,7 @@ $billingLabels = [
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin | Salva DinDin</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-1">
+    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-3">
     <script>
         (() => {
             const savedTheme = localStorage.getItem('salvadindin-theme');
@@ -262,14 +371,16 @@ $billingLabels = [
     <div class="app-shell">
         <aside class="sidebar">
             <a class="brand-lockup" href="/admin/">
-                <img class="brand-logo" src="/assets/img/logo2.png" alt="Salva DinDin Controle Financeiro">
+                <img class="brand-logo" src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             </a>
             <nav class="nav-list" aria-label="Admin">
                 <a class="nav-item active" href="/admin/">Admin</a>
                 <a class="nav-item" href="/dashboard.php">Minha conta</a>
                 <a class="nav-item" href="/transactions.php">Movimentacoes</a>
+                <a class="nav-item" href="/whatsapp.php"><?= whatsapp_integration_enabled() ? 'Whatsapp' : 'WhatsApp desativado' ?></a>
+                <a class="nav-item" href="/graficos.php">Graficos</a>
+                <a class="nav-item" href="/debts.php">Dividas</a>
                 <a class="nav-item" href="/goals.php">Metas</a>
-                <a class="nav-item" href="/investments.php">Investimentos</a>
             </nav>
             <a class="nav-item muted" href="/logout.php">Sair</a>
         </aside>
@@ -314,8 +425,7 @@ $billingLabels = [
                 </article>
             </section>
 
-            <section class="two-column align-start">
-                <div class="panel">
+            <section class="panel">
                     <div class="panel-heading">
                         <h2>Criar conta</h2>
                     </div>
@@ -333,12 +443,22 @@ $billingLabels = [
                             <input type="email" name="email" required>
                         </label>
                         <label>
+                            <span>Celular / WhatsApp</span>
+                            <input type="tel" name="whatsapp_phone" inputmode="tel" placeholder="Ex.: 28992526083" required>
+                        </label>
+                        <label>
                             <span>Senha</span>
                             <input type="password" name="password" minlength="8" required>
                         </label>
                         <label>
                             <span>Plano</span>
-                            <input type="text" name="plan_name" value="Mensal">
+                            <select name="plan_key" required>
+                                <?php foreach ($plans as $planKey => $plan): ?>
+                                    <option value="<?= e($planKey) ?>">
+                                        <?= e($plan['name']) ?><?= $plan['days'] !== null ? ' - ' . e($plan['days']) . ' dias' : '' ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </label>
                         <label>
                             <span>Valor</span>
@@ -346,7 +466,7 @@ $billingLabels = [
                         </label>
                         <label>
                             <span>Expira em</span>
-                            <input type="date" name="plan_expires_at">
+                            <input type="text" value="Automatico pelo plano" disabled>
                         </label>
                         <label class="check-row full">
                             <input type="checkbox" name="is_admin" value="1">
@@ -355,9 +475,9 @@ $billingLabels = [
 
                         <button class="button button-primary full" type="submit">Criar conta</button>
                     </form>
-                </div>
+            </section>
 
-                <div class="panel">
+            <section class="panel">
                     <div class="panel-heading">
                         <h2>Criar cobranca</h2>
                     </div>
@@ -390,7 +510,6 @@ $billingLabels = [
 
                         <button class="button button-secondary full" type="submit">Criar cobranca</button>
                     </form>
-                </div>
             </section>
 
             <section class="panel">
@@ -410,6 +529,12 @@ $billingLabels = [
                                 <div>
                                     <strong><?= e($user['name']) ?></strong>
                                     <span><?= e($user['email']) ?></span>
+                                    <small>
+                                        WhatsApp: <?= e($user['whatsapp_phone'] ?: 'Nao vinculado') ?> |
+                                        Plano: <?= e($user['plan_name'] ?: 'free') ?> |
+                                        Cadastro: <?= e(format_datetime_br((string) $user['created_at'])) ?> |
+                                        Ultimo online: <?= e(format_datetime_br($user['last_online_at'] ?? null)) ?>
+                                    </small>
                                 </div>
                                 <span class="badge <?= e($user['account_status']) ?>"><?= e($statusLabels[$user['account_status']] ?? $user['account_status']) ?></span>
                             </div>
@@ -425,7 +550,13 @@ $billingLabels = [
                                 </label>
                                 <label>
                                     <span>Plano</span>
-                                    <input type="text" name="plan_name" value="<?= e($user['plan_name']) ?>">
+                                    <select name="plan_key">
+                                        <?php foreach ($plans as $planKey => $plan): ?>
+                                            <option value="<?= e($planKey) ?>" <?= $user['plan_name'] === $plan['name'] ? 'selected' : '' ?>>
+                                                <?= e($plan['name']) ?><?= $plan['days'] !== null ? ' - ' . e($plan['days']) . ' dias' : '' ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </label>
                                 <label>
                                     <span>Valor</span>
@@ -439,6 +570,10 @@ $billingLabels = [
                                     <span>Ultimo pagamento</span>
                                     <input type="date" name="last_payment_at" value="<?= e($user['last_payment_at']) ?>">
                                 </label>
+                                <label>
+                                    <span>Celular / WhatsApp</span>
+                                    <input type="tel" name="whatsapp_phone" inputmode="tel" value="<?= e($user['whatsapp_phone'] ?? '') ?>" placeholder="Ex.: 28992526083">
+                                </label>
                                 <label class="check-row">
                                     <input type="checkbox" name="is_admin" value="1" <?= is_admin_user($user) ? 'checked' : '' ?>>
                                     <span>Admin</span>
@@ -449,7 +584,18 @@ $billingLabels = [
                                 </label>
                             </div>
 
-                            <button class="button button-secondary" type="submit">Salvar alteracoes</button>
+                            <div class="admin-account-actions">
+                                <button class="button button-secondary" type="submit" name="action" value="update_user">Salvar alteracoes</button>
+                                <?php if ((int) $user['id'] !== (int) $admin['id']): ?>
+                                    <button
+                                        class="button button-danger"
+                                        type="submit"
+                                        name="action"
+                                        value="delete_user"
+                                        data-confirm="Excluir esta conta? Todos os dados vinculados tambem serao apagados."
+                                    >Excluir conta</button>
+                                <?php endif; ?>
+                            </div>
                         </form>
                     <?php endforeach; ?>
                 </div>
@@ -507,6 +653,12 @@ $billingLabels = [
                                         <?php else: ?>
                                             <span><?= $billing['paid_at'] ? 'Pago em ' . format_date($billing['paid_at']) : '-' ?></span>
                                         <?php endif; ?>
+                                        <form method="post" class="inline-form" data-confirm="Excluir esta cobranca?">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="action" value="delete_billing">
+                                            <input type="hidden" name="billing_id" value="<?= e($billing['id']) ?>">
+                                            <button class="button button-danger" type="submit">Excluir</button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -516,6 +668,6 @@ $billingLabels = [
             </section>
         </main>
     </div>
-    <script src="/assets/js/app.js?v=responsive-1"></script>
+    <script src="/assets/js/app.js?v=responsive-3"></script>
 </body>
 </html>

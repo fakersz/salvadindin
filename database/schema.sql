@@ -93,6 +93,60 @@ ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 
 
 --
+-- Name: debts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.debts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    title character varying(140) NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    debt_type character varying(12) NOT NULL,
+    due_date date NOT NULL,
+    status character varying(12) DEFAULT 'pending'::character varying NOT NULL,
+    paid_at date,
+    installment_number integer DEFAULT 1 NOT NULL,
+    installments_total integer DEFAULT 1 NOT NULL,
+    notes character varying(180),
+    financing_total numeric(12,2),
+    financing_start_date date,
+    financing_end_date date,
+    financing_due_day integer,
+    late_fee_rate numeric(6,3) DEFAULT 0 NOT NULL,
+    monthly_interest_rate numeric(6,3) DEFAULT 0 NOT NULL,
+    debt_group_key character varying(64),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT debts_amount_check CHECK ((amount > (0)::numeric)),
+    CONSTRAINT debts_debt_type_check CHECK (((debt_type)::text = ANY (ARRAY[('monthly'::character varying)::text, ('installment'::character varying)::text, ('single'::character varying)::text]))),
+    CONSTRAINT debts_financing_due_day_check CHECK (((financing_due_day IS NULL) OR ((financing_due_day >= 1) AND (financing_due_day <= 31)))),
+    CONSTRAINT debts_installment_number_check CHECK ((installment_number > 0)),
+    CONSTRAINT debts_installments_total_check CHECK ((installments_total > 0)),
+    CONSTRAINT debts_late_fee_rate_check CHECK ((late_fee_rate >= (0)::numeric)),
+    CONSTRAINT debts_monthly_interest_rate_check CHECK ((monthly_interest_rate >= (0)::numeric)),
+    CONSTRAINT debts_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('paid'::character varying)::text])))
+);
+
+
+--
+-- Name: debts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.debts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: debts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.debts_id_seq OWNED BY public.debts.id;
+
+
+--
 -- Name: goals; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -126,44 +180,6 @@ CREATE SEQUENCE public.goals_id_seq
 --
 
 ALTER SEQUENCE public.goals_id_seq OWNED BY public.goals.id;
-
-
---
--- Name: investments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.investments (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    asset_name character varying(120) NOT NULL,
-    asset_class character varying(40) NOT NULL,
-    movement_type character varying(12) NOT NULL,
-    amount numeric(12,2) NOT NULL,
-    movement_date date NOT NULL,
-    notes character varying(180),
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT investments_amount_check CHECK ((amount > (0)::numeric)),
-    CONSTRAINT investments_movement_type_check CHECK (((movement_type)::text = ANY (ARRAY[('buy'::character varying)::text, ('sell'::character varying)::text, ('yield'::character varying)::text])))
-);
-
-
---
--- Name: investments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.investments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: investments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.investments_id_seq OWNED BY public.investments.id;
 
 
 --
@@ -218,9 +234,10 @@ CREATE TABLE public.users (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     is_admin boolean DEFAULT false NOT NULL,
     account_status character varying(12) DEFAULT 'active'::character varying NOT NULL,
-    plan_name character varying(80) DEFAULT 'Teste'::character varying NOT NULL,
+    plan_name character varying(80) DEFAULT 'free'::character varying NOT NULL,
     plan_price numeric(12,2) DEFAULT 0 NOT NULL,
     plan_expires_at date,
+    last_online_at timestamp with time zone,
     last_payment_at date,
     admin_notes text,
     CONSTRAINT users_account_status_check CHECK (((account_status)::text = ANY (ARRAY[('active'::character varying)::text, ('blocked'::character varying)::text, ('expired'::character varying)::text])))
@@ -261,17 +278,17 @@ ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
+-- Name: debts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.debts ALTER COLUMN id SET DEFAULT nextval('public.debts_id_seq'::regclass);
+
+
+--
 -- Name: goals id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.goals ALTER COLUMN id SET DEFAULT nextval('public.goals_id_seq'::regclass);
-
-
---
--- Name: investments id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.investments ALTER COLUMN id SET DEFAULT nextval('public.investments_id_seq'::regclass);
 
 
 --
@@ -313,19 +330,19 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: debts debts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.debts
+    ADD CONSTRAINT debts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: goals goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.goals
     ADD CONSTRAINT goals_pkey PRIMARY KEY (id);
-
-
---
--- Name: investments investments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.investments
-    ADD CONSTRAINT investments_pkey PRIMARY KEY (id);
 
 
 --
@@ -374,24 +391,31 @@ CREATE INDEX idx_categories_user_id ON public.categories USING btree (user_id);
 
 
 --
+-- Name: idx_debts_user_due; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_debts_user_due ON public.debts USING btree (user_id, due_date);
+
+
+--
+-- Name: idx_debts_user_group_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_debts_user_group_key ON public.debts USING btree (user_id, debt_group_key);
+
+
+--
+-- Name: idx_debts_user_type_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_debts_user_type_status ON public.debts USING btree (user_id, debt_type, status);
+
+
+--
 -- Name: idx_goals_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_goals_user_id ON public.goals USING btree (user_id);
-
-
---
--- Name: idx_investments_user_class; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_investments_user_class ON public.investments USING btree (user_id, asset_class);
-
-
---
--- Name: idx_investments_user_date; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_investments_user_date ON public.investments USING btree (user_id, movement_date DESC);
 
 
 --
@@ -430,6 +454,13 @@ CREATE INDEX idx_transactions_user_type ON public.transactions USING btree (user
 
 
 --
+-- Name: idx_users_last_online_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_last_online_at ON public.users USING btree (last_online_at DESC);
+
+
+--
 -- Name: billing_records billing_records_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -446,19 +477,19 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: debts debts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.debts
+    ADD CONSTRAINT debts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: goals goals_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.goals
     ADD CONSTRAINT goals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
--- Name: investments investments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.investments
-    ADD CONSTRAINT investments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -482,4 +513,3 @@ ALTER TABLE ONLY public.transactions
 --
 
 \unrestrict j2PBMbTxBs5b8nnCuVnY7IDcg1ivPdDbT0i1KU8twJnMa3qUbAIYxOa1EWIdjKS
-

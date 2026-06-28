@@ -32,7 +32,7 @@ $flashError = flash('error');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Entrar | Salva Din Din!</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-1">
+    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-3">
     <script>
         (() => {
             const savedTheme = localStorage.getItem('salvadindin-theme');
@@ -45,7 +45,7 @@ $flashError = flash('error');
     <button type="button" class="theme-toggle theme-toggle-floating auth-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
     <main class="auth-shell">
         <section class="auth-showcase" aria-label="Salva DinDin">
-            <img src="/assets/img/logo.png" alt="Salva DinDin Controle Financeiro">
+            <img src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             <div class="showcase-note">
                 <span aria-hidden="true">↗</span>
                 <p>Organize suas receitas, despesas e metas em um painel simples para <strong>decidir melhor.</strong></p>
@@ -54,7 +54,7 @@ $flashError = flash('error');
 
         <section class="auth-panel">
             <div class="auth-brand">
-                <img src="/assets/img/logo2.png" alt="Salva DinDin Controle Financeiro">
+                <img src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             </div>
 
             <div class="auth-copy">
@@ -114,6 +114,6 @@ $flashError = flash('error');
         </section>
     </main>
     <footer class="auth-footer">© 2024 Salva DinDin. Todos os direitos reservados.</footer>
-    <script src="/assets/js/app.js?v=responsive-1"></script>
+    <script src="/assets/js/app.js?v=responsive-3"></script>
 </body>
 </html>

@@ -110,10 +110,11 @@ body.auth-page {
             rgba(255, 255, 255, 0.82),
             rgba(255, 255, 255, 0.82)
         ),
-        url("/assets/img/fundo.png");
+        url("/assets/img/logon.png");
     background-attachment: fixed;
     background-position: center;
-    background-size: cover;
+    background-repeat: no-repeat;
+    background-size: min(74vw, 760px) auto;
 }
 
 html[data-theme="dark"] body.auth-page {
@@ -122,10 +123,11 @@ html[data-theme="dark"] body.auth-page {
             rgba(31, 41, 55, 0.62),
             rgba(31, 41, 55, 0.62)
         ),
-        url("/assets/img/fundo.png");
+        url("/assets/img/logon.png");
     background-attachment: fixed;
     background-position: center;
-    background-size: cover;
+    background-repeat: no-repeat;
+    background-size: min(74vw, 760px) auto;
 }
 
 .auth-shell {
@@ -311,16 +313,16 @@ body.auth-page .button-primary svg {
 
 .sidebar .brand-lockup {
     display: flex;
-    min-height: 58px;
+    min-height: 112px;
     justify-content: center;
-    padding: 6px 2px 14px;
+    padding: 6px 2px 18px;
     border-bottom: 1px solid var(--line-soft);
 }
 
 .brand-logo {
     display: block;
-    width: min(100%, 156px);
-    height: 54px;
+    width: 96px;
+    height: 96px;
     object-fit: contain;
     filter: drop-shadow(0 8px 14px rgba(21, 128, 61, 0.12));
     transition: filter 0.2s ease, transform 0.2s ease;
@@ -338,9 +340,9 @@ body.auth-page .button-primary svg {
 
 .auth-brand img {
     display: block;
-    width: auto;
-    max-width: min(100%, 252px);
-    height: 68px;
+    width: 118px;
+    max-width: min(100%, 118px);
+    height: 118px;
     object-fit: contain;
     opacity: 1;
     transition: filter 0.22s ease, transform 0.22s ease;
@@ -408,7 +410,9 @@ body.auth-register .auth-copy {
 }
 
 body.auth-register .auth-brand img {
-    height: 62px;
+    width: 108px;
+    max-width: min(100%, 108px);
+    height: 108px;
 }
 
 body.auth-register .auth-panel h1 {
@@ -435,6 +439,7 @@ body.auth-register .auth-panel h1 {
 
 label {
     display: grid;
+    min-width: 0;
     gap: 7px;
 }
 
@@ -446,6 +451,7 @@ label span {
 
 input,
 select {
+    min-width: 0;
     width: 100%;
     min-height: 46px;
     padding: 11px 13px;
@@ -455,6 +461,16 @@ select {
     border-radius: 8px;
     outline: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 input:focus,
@@ -491,6 +507,12 @@ select:focus {
 
 .button-primary:hover {
     background: var(--primary-dark);
+}
+
+.button:disabled,
+input:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
 }
 
 .button-secondary {
@@ -550,8 +572,9 @@ select:focus {
     }
 
     .auth-brand img {
-        height: 50px;
-        max-width: min(100%, 205px);
+        width: 76px;
+        max-width: min(100%, 76px);
+        height: 76px;
     }
 
     .auth-copy {
@@ -640,7 +663,9 @@ select:focus {
     }
 
     body.auth-register .auth-brand img {
-        height: 44px;
+        width: 68px;
+        max-width: min(100%, 68px);
+        height: 68px;
     }
 
     body.auth-register .auth-copy {
@@ -680,6 +705,12 @@ select:focus {
     color: var(--green);
     background: var(--success-bg);
     border: 1px solid var(--success-line);
+}
+
+.alert-warning {
+    color: var(--amber);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-line);
 }
 
 .alert.is-fading {
@@ -816,6 +847,55 @@ select:focus {
     font-size: clamp(2rem, 4vw, 3.8rem);
 }
 
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.plan-card {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    min-width: 178px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: #14532d;
+    background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(34, 197, 94, 0.2);
+}
+
+.plan-card-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(34, 197, 94, 0.22);
+    border-radius: 999px;
+    font-size: 1.15rem;
+}
+
+.plan-card strong,
+.plan-card small {
+    display: block;
+}
+
+.plan-card strong {
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.plan-card small {
+    margin-top: 3px;
+    color: #15803d;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -926,6 +1006,11 @@ select:focus {
     margin-bottom: 16px;
 }
 
+.panel-heading h2,
+.panel-heading span {
+    min-width: 0;
+}
+
 .panel-heading span {
     color: var(--muted);
     font-size: 0.9rem;
@@ -1010,6 +1095,120 @@ select:focus {
     border-top: 1px solid var(--line);
 }
 
+.transaction-edit-row > td {
+    padding: 10px;
+}
+
+.transaction-edit-form {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.75fr) minmax(110px, 0.75fr) minmax(150px, 1fr) minmax(120px, 0.8fr) minmax(150px, 1fr) minmax(112px, 0.7fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.transaction-edit-form label,
+.transaction-delete-form {
+    min-width: 0;
+}
+
+.transaction-edit-form label {
+    gap: 5px;
+}
+
+.transaction-edit-form input,
+.transaction-edit-form select,
+.transaction-edit-form .button,
+.transaction-delete-form .button {
+    min-height: 40px;
+}
+
+.transaction-edit-form .button,
+.transaction-delete-form .button {
+    padding: 8px 12px;
+}
+
+.transaction-delete-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.transaction-mobile-list {
+    display: none;
+}
+
+.transaction-mobile-card {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.transaction-mobile-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+}
+
+.transaction-mobile-head div {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+}
+
+.transaction-mobile-head strong,
+.transaction-mobile-head span,
+.transaction-mobile-head b {
+    overflow-wrap: anywhere;
+}
+
+.transaction-mobile-head span,
+.transaction-mobile-meta {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 650;
+}
+
+.transaction-mobile-head b {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.transaction-mobile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.transaction-mobile-meta span {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    padding: 5px 8px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+}
+
+.transaction-mobile-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.transaction-mobile-actions .inline-form,
+.transaction-mobile-actions .button {
+    width: 100%;
+}
+
+.transaction-edit-panel {
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+}
+
 .goal-edit-form .button {
     white-space: nowrap;
 }
@@ -1041,11 +1240,26 @@ select:focus {
     margin-top: 10px;
 }
 
-.investment-chart {
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.chart-panel {
+    min-height: 340px;
+}
+
+.chart-visual {
     display: grid;
     grid-template-columns: minmax(110px, 140px) minmax(0, 1fr);
     gap: 18px;
     align-items: center;
+}
+
+.chart-large {
+    grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
+    gap: 22px;
 }
 
 .donut-chart {
@@ -1071,7 +1285,227 @@ select:focus {
     position: relative;
     z-index: 1;
     color: var(--text);
+    max-width: 70px;
     font-weight: 850;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.chart-large .donut-chart {
+    width: min(190px, 100%);
+}
+
+.chart-large .donut-chart span {
+    max-width: 96px;
+    font-size: 0.92rem;
+}
+
+.chart-total {
+    display: block;
+    padding-bottom: 3px;
+}
+
+.debt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.debt-panel {
+    align-self: start;
+}
+
+.debt-list {
+    display: grid;
+    gap: 12px;
+}
+
+.debt-item {
+    display: grid;
+    position: relative;
+    gap: 12px;
+    padding: 13px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.debt-folder {
+    overflow: hidden;
+    background: var(--surface-elevated);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(31, 41, 55, 0.08);
+}
+
+.debt-folder[open] {
+    border-color: rgba(34, 197, 94, 0.45);
+    box-shadow: 0 16px 34px rgba(34, 197, 94, 0.12);
+}
+
+.debt-folder-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 14px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.debt-folder-summary::-webkit-details-marker {
+    display: none;
+}
+
+.folder-icon {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    color: var(--primary-dark);
+    background: var(--success-bg);
+    border: 1px solid var(--success-line);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    transition: transform 0.18s ease;
+}
+
+.debt-folder[open] .folder-icon {
+    transform: rotate(90deg);
+}
+
+.debt-folder-title,
+.debt-folder-total {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+}
+
+.debt-folder-title strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.debt-folder-title small,
+.debt-folder-total small,
+.debt-folder-info {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 650;
+}
+
+.debt-folder-total {
+    justify-items: end;
+    text-align: right;
+}
+
+.debt-folder-body {
+    display: grid;
+    gap: 12px;
+    padding: 0 14px 14px;
+}
+
+.debt-folder-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.debt-folder-info span {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    padding: 5px 8px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+}
+
+.debt-installment-list {
+    display: grid;
+    gap: 10px;
+}
+
+.debt-installment-item {
+    box-shadow: none;
+}
+
+.debt-item.is-paid {
+    filter: saturate(0.65);
+}
+
+.debt-item.is-paid > :not(.paid-stamp) {
+    opacity: 0.38;
+}
+
+.paid-stamp {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 25px;
+    padding: 5px 9px;
+    color: var(--green);
+    background: var(--success-bg);
+    border: 1px solid var(--success-line);
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 950;
+    letter-spacing: 0;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.18);
+    transform: rotate(-2deg);
+}
+
+.debt-item.is-paid .paid-stamp {
+    top: 38px;
+}
+
+.debt-title,
+.debt-meta,
+.debt-actions {
+    display: flex;
+    min-width: 0;
+    gap: 10px;
+}
+
+.debt-title,
+.debt-meta {
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.debt-title div {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+}
+
+.debt-title span,
+.debt-title small,
+.debt-meta small {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 650;
+}
+
+.debt-title b {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.debt-title strong,
+.debt-title span,
+.debt-title small,
+.debt-meta small,
+.debt-folder-title small {
+    overflow-wrap: anywhere;
+}
+
+.debt-actions {
+    flex-wrap: wrap;
 }
 
 .chart-list,
@@ -1255,6 +1689,12 @@ td small {
     font-weight: 650;
 }
 
+.admin-account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .badge {
     display: inline-flex;
     align-items: center;
@@ -1301,6 +1741,13 @@ td small {
     font-size: 0.85rem;
 }
 
+[data-edit-transaction] {
+    min-height: 34px;
+    margin: 2px 4px 2px 0;
+    padding: 7px 10px;
+    font-size: 0.85rem;
+}
+
 table {
     width: 100%;
     min-width: 620px;
@@ -1330,6 +1777,90 @@ td {
     text-align: right;
 }
 
+.muted-text {
+    color: var(--muted);
+}
+
+.receipt-link {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    color: var(--primary-dark);
+    background: var(--success-bg);
+    border: 1px solid var(--success-line);
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+@media (min-width: 981px) and (max-width: 1280px) {
+    .app-shell {
+        grid-template-columns: 190px minmax(0, 1fr);
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .topbar h1 {
+        font-size: clamp(2.25rem, 4vw, 3.1rem);
+    }
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .two-column,
+    .debt-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .debt-panel {
+        overflow: hidden;
+    }
+
+    .debt-folder-summary {
+        grid-template-columns: auto minmax(0, 1fr) minmax(132px, auto);
+    }
+
+    .debt-title,
+    .debt-meta {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: flex-start;
+    }
+
+    .debt-meta small {
+        text-align: right;
+    }
+
+    .goal-edit-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .goal-edit-form .goal-field-title,
+    .goal-edit-form .button {
+        grid-column: 1 / -1;
+    }
+
+    .goal-adjust-form {
+        grid-template-columns: minmax(0, 1fr) 1fr 1fr;
+    }
+
+    .transaction-edit-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .transaction-edit-form .button,
+    .transaction-delete-form {
+        grid-column: 1 / -1;
+    }
+}
+
 @media (min-width: 981px) and (max-width: 1180px) {
     .app-shell {
         grid-template-columns: 188px minmax(0, 1fr);
@@ -1341,13 +1872,13 @@ td {
     }
 
     .sidebar .brand-lockup {
-        min-height: 52px;
+        min-height: 90px;
         padding-bottom: 10px;
     }
 
     .brand-logo {
-        width: min(100%, 132px);
-        height: 46px;
+        width: 74px;
+        height: 74px;
     }
 
     .nav-item {
@@ -1384,7 +1915,16 @@ td {
     }
 
     .two-column {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .chart-grid {
+        gap: 14px;
+    }
+
+    .debt-grid {
+        grid-template-columns: 1fr;
         gap: 14px;
     }
 
@@ -1397,13 +1937,21 @@ td {
         gap: 12px;
     }
 
-    .investment-chart {
+    .chart-visual {
         grid-template-columns: 112px minmax(0, 1fr);
         gap: 12px;
     }
 
+    .chart-large {
+        grid-template-columns: 132px minmax(0, 1fr);
+    }
+
     .donut-chart {
         width: 112px;
+    }
+
+    .chart-large .donut-chart {
+        width: 132px;
     }
 
     .chart-row {
@@ -1559,8 +2107,12 @@ td {
         grid-template-columns: 1fr;
     }
 
+    .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .content {
-        padding: 76px clamp(16px, 4vw, 28px) 30px;
+        padding: 78px clamp(16px, 4vw, 28px) 30px;
     }
 
     body.auth-page {
@@ -1612,6 +2164,30 @@ td {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .debt-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .debt-panel {
+        overflow: hidden;
+    }
+
+    .debt-folder-summary {
+        grid-template-columns: auto minmax(0, 1fr) minmax(120px, auto);
+    }
+
+    .debt-title,
+    .debt-meta {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: flex-start;
+    }
+
+    .debt-meta small {
+        text-align: right;
+    }
+
     .panel,
     .metric-card,
     .auth-panel {
@@ -1655,8 +2231,9 @@ td {
     }
 
     .auth-brand img {
-        height: 62px;
-        max-width: min(100%, 218px);
+        width: 92px;
+        max-width: min(100%, 92px);
+        height: 92px;
     }
 
     .auth-copy {
@@ -1687,7 +2264,9 @@ td {
     }
 
     body.auth-register .auth-brand img {
-        height: 56px;
+        width: 84px;
+        max-width: min(100%, 84px);
+        height: 84px;
     }
 
     body.auth-register .auth-copy {
@@ -1700,6 +2279,16 @@ td {
 
     .topbar {
         align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .topbar-actions,
+    .plan-card {
+        width: 100%;
+    }
+
+    .topbar-actions {
+        align-items: stretch;
         flex-direction: column;
     }
 
@@ -1720,6 +2309,20 @@ td {
 
     .metric-card {
         min-height: 112px;
+    }
+
+    .debt-folder-summary {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .debt-folder-total {
+        grid-column: 2;
+        justify-items: start;
+        text-align: left;
+    }
+
+    .debt-folder-info {
+        gap: 6px;
     }
 
     .sidebar {
@@ -1773,7 +2376,28 @@ td {
         width: 100%;
     }
 
-    .investment-chart {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .debt-title,
+    .debt-meta {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .debt-title b,
+    .debt-meta small {
+        justify-self: start;
+        text-align: left;
+    }
+
+    .debt-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chart-visual {
         grid-template-columns: 1fr;
         justify-items: center;
     }
@@ -1825,6 +2449,30 @@ td {
         padding-bottom: 4px;
     }
 
+    .transactions-table-wrap {
+        display: none;
+    }
+
+    .transaction-mobile-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .transaction-edit-panel .transaction-edit-form {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .transaction-edit-panel .transaction-edit-form .button,
+    .transaction-edit-panel .transaction-field-title {
+        grid-column: auto;
+    }
+
+    .transaction-edit-panel .button {
+        width: 100%;
+        min-height: 46px;
+    }
+
     table {
         min-width: 560px;
         font-size: 0.88rem;
@@ -1868,7 +2516,8 @@ td {
     }
 
     .auth-brand img {
-        height: 52px;
+        width: 78px;
+        height: 78px;
     }
 
     .panel,
@@ -1879,4 +2528,5 @@ td {
     .button {
         width: 100%;
     }
+
 }

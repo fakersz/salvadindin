@@ -1,0 +1,129 @@
+:root {
+    color-scheme: light;
+    --bg: #f5f8f6;
+    --card: rgba(255, 255, 255, 0.88);
+    --text: #111827;
+    --muted: #64748b;
+    --line: rgba(34, 197, 94, 0.22);
+    --primary: #22c55e;
+    --primary-dark: #15803d;
+    --shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    display: grid;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    place-items: center;
+    padding: 24px;
+    color: var(--text);
+    background:
+        linear-gradient(rgba(245, 248, 246, 0.9), rgba(245, 248, 246, 0.94)),
+        url("/assets/img/logon.png") center 32px / min(86vw, 620px) auto no-repeat fixed;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.bio-card {
+    display: grid;
+    width: min(100%, 430px);
+    gap: 18px;
+    justify-items: center;
+    padding: 34px 22px 24px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+    text-align: center;
+}
+
+.avatar {
+    width: 168px;
+    height: 168px;
+    object-fit: contain;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: 0 14px 30px rgba(34, 197, 94, 0.2);
+}
+
+h1 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.subtitle {
+    max-width: 330px;
+    margin: -6px 0 4px;
+    color: var(--muted);
+    font-size: 0.98rem;
+    line-height: 1.45;
+}
+
+.links {
+    display: grid;
+    width: 100%;
+    gap: 12px;
+}
+
+.link-button {
+    display: flex;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 16px;
+    color: var(--primary-dark);
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    font-weight: 850;
+    text-decoration: none;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.link-button:hover {
+    border-color: rgba(34, 197, 94, 0.55);
+    box-shadow: 0 14px 28px rgba(34, 197, 94, 0.16);
+    transform: translateY(-1px);
+}
+
+.link-button.primary {
+    color: #ffffff;
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+footer {
+    padding-top: 4px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 750;
+}
+
+@media (max-width: 420px) {
+    body {
+        padding: 16px;
+    }
+
+    .bio-card {
+        padding: 28px 16px 20px;
+        border-radius: 18px;
+    }
+
+    .avatar {
+        width: 108px;
+        height: 108px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+}

@@ -191,7 +191,7 @@ $goals = $stmt->fetchAll();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Metas | Salva DinDin</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-1">
+    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-3">
     <script>
         (() => {
             const savedTheme = localStorage.getItem('salvadindin-theme');
@@ -204,13 +204,15 @@ $goals = $stmt->fetchAll();
     <div class="app-shell">
         <aside class="sidebar">
             <a class="brand-lockup" href="/dashboard.php">
-                <img class="brand-logo" src="/assets/img/logo2.png" alt="Salva DinDin Controle Financeiro">
+                <img class="brand-logo" src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             </a>
             <nav class="nav-list" aria-label="Principal">
                 <a class="nav-item" href="/dashboard.php">Dashboard</a>
                 <a class="nav-item" href="/transactions.php">Movimentacoes</a>
+                <a class="nav-item" href="/whatsapp.php"><?= whatsapp_integration_enabled() ? 'Whatsapp' : 'WhatsApp desativado' ?></a>
+                <a class="nav-item" href="/graficos.php">Graficos</a>
+                <a class="nav-item" href="/debts.php">Dividas</a>
                 <a class="nav-item active" href="/goals.php">Metas</a>
-                <a class="nav-item" href="/investments.php">Investimentos</a>
                 <?php if (is_admin_user($user)): ?>
                     <a class="nav-item" href="/admin/">Admin</a>
                 <?php endif; ?>
@@ -349,6 +351,6 @@ $goals = $stmt->fetchAll();
             </section>
         </main>
     </div>
-    <script src="/assets/js/app.js?v=responsive-1"></script>
+    <script src="/assets/js/app.js?v=responsive-3"></script>
 </body>
 </html>

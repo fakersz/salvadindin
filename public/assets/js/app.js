@@ -116,10 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
     syncThemeButtons();
   }
 
-  const typeSelect = document.querySelector('[data-category-filter]');
-  const categorySelect = document.querySelector('[data-category-select]');
+  document.querySelectorAll('[data-category-filter]').forEach((typeSelect) => {
+    const form = typeSelect.closest('form');
+    const categorySelect = form?.querySelector('[data-category-select]');
 
-  if (typeSelect && categorySelect) {
+    if (!categorySelect) {
+      return;
+    }
+
     const syncCategories = () => {
       const selectedType = typeSelect.value;
 
@@ -137,7 +141,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     typeSelect.addEventListener('change', syncCategories);
     syncCategories();
-  }
+  });
+
+  document.querySelectorAll('[data-debt-type]').forEach((select) => {
+    const form = select.closest('form');
+    const monthlyFields = form?.querySelectorAll('[data-monthly-installments], [data-monthly-paid-installments]');
+    const installmentFields = form?.querySelectorAll('[data-financing-field]');
+    const standardDueDateField = form?.querySelector('[data-standard-due-date]');
+
+    if (!monthlyFields?.length && !installmentFields?.length) {
+      return;
+    }
+
+    const syncDebtInstallments = () => {
+      monthlyFields?.forEach((field) => {
+        field.hidden = select.value !== 'monthly';
+      });
+
+      installmentFields?.forEach((field) => {
+        field.hidden = select.value !== 'installment';
+      });
+
+      if (standardDueDateField) {
+        standardDueDateField.hidden = select.value === 'installment';
+      }
+    };
+
+    select.addEventListener('change', syncDebtInstallments);
+    syncDebtInstallments();
+  });
+
+  document.querySelectorAll('[data-edit-transaction]').forEach((button) => {
+    const targetId = button.dataset.target;
+    const target = targetId ? document.getElementById(targetId) : null;
+
+    if (!target) {
+      return;
+    }
+
+    button.addEventListener('click', () => {
+      const isOpening = target.hidden;
+
+      document.querySelectorAll('.transaction-edit-row, .transaction-edit-panel').forEach((panel) => {
+        panel.hidden = true;
+      });
+
+      document.querySelectorAll('[data-edit-transaction]').forEach((editButton) => {
+        editButton.textContent = 'Editar';
+      });
+
+      target.hidden = !isOpening;
+      button.textContent = isOpening ? 'Fechar' : 'Editar';
+
+      if (isOpening && target.classList.contains('transaction-edit-panel')) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  });
 
   document.querySelectorAll('.alert').forEach((alert) => {
     window.setTimeout(() => {
@@ -159,9 +219,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.querySelectorAll('form[data-confirm]').forEach((form) => {
+  document.querySelectorAll('form').forEach((form) => {
     form.addEventListener('submit', (event) => {
-      const message = form.dataset.confirm || 'Confirmar esta acao?';
+      const submitterMessage = event.submitter?.dataset.confirm;
+      const message = submitterMessage || form.dataset.confirm || 'Confirmar esta acao?';
+
+      if (!submitterMessage && !form.dataset.confirm) {
+        return;
+      }
 
       if (!window.confirm(message)) {
         event.preventDefault();

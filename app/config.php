@@ -2,41 +2,59 @@
 
 declare(strict_types=1);
 
-function env_value(string $key, mixed $default = null): mixed
-{
-    static $env = null;
+if (!function_exists('env_value')) {
+    function env_value(string $key, mixed $default = null): mixed
+    {
+        static $env = null;
 
-    if ($env === null) {
-        $env = [];
-        $path = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
+        if ($env === null) {
+            $env = [];
+            $path = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
 
-        if (is_readable($path)) {
-            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (is_readable($path)) {
+                $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-            foreach ($lines as $line) {
-                $line = trim($line);
+                foreach ($lines as $line) {
+                    $line = trim($line);
 
-                if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
-                    continue;
+                    if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
+                        continue;
+                    }
+
+                    [$name, $value] = explode('=', $line, 2);
+                    $name = trim($name);
+                    $value = trim($value);
+
+                    if (
+                        (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
+                        (str_starts_with($value, "'") && str_ends_with($value, "'"))
+                    ) {
+                        $value = substr($value, 1, -1);
+                    }
+
+                    $env[$name] = $value;
                 }
-
-                [$name, $value] = explode('=', $line, 2);
-                $name = trim($name);
-                $value = trim($value);
-
-                if (
-                    (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
-                    (str_starts_with($value, "'") && str_ends_with($value, "'"))
-                ) {
-                    $value = substr($value, 1, -1);
-                }
-
-                $env[$name] = $value;
             }
         }
-    }
 
-    return $_ENV[$key] ?? $_SERVER[$key] ?? $env[$key] ?? $default;
+        return $_ENV[$key] ?? $_SERVER[$key] ?? $env[$key] ?? $default;
+    }
+}
+
+if (!function_exists('env_bool')) {
+    function env_bool(string $key, bool $default = false): bool
+    {
+        $value = env_value($key, $default ? 'true' : 'false');
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+}
+
+if (!function_exists('whatsapp_integration_enabled')) {
+    function whatsapp_integration_enabled(): bool
+    {
+        return env_bool('WHATSAPP_ENABLED', false);
+    }
 }
 
 return [

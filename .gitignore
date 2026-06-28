@@ -18,3 +18,6 @@ Thumbs.db
 /storage/
 /cache/
 /sessions/
+.env
+uploads/
+storage/

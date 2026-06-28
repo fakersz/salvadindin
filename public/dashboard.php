@@ -65,18 +65,7 @@ $previousSummary = $stmt->fetch();
 $previousIncome = (float) $previousSummary['income'];
 $previousExpense = (float) $previousSummary['expense'];
 
-$stmt = db()->prepare(
-    "SELECT COALESCE(SUM(CASE WHEN movement_type = 'sell' THEN -amount ELSE amount END), 0)
-     FROM investments
-     WHERE user_id = :user_id AND movement_date BETWEEN :start AND :end"
-);
-$stmt->execute([
-    'user_id' => $user['id'],
-    'start' => $monthStart,
-    'end' => $monthEnd,
-]);
-$monthInvestments = (float) $stmt->fetchColumn();
-$remainingToSpend = $monthIncome - $monthExpense - $monthInvestments;
+$remainingToSpend = $monthIncome - $monthExpense;
 
 $stmt = db()->prepare(
     'SELECT t.*, c.name AS category_name
@@ -117,6 +106,26 @@ $stmt = db()->prepare(
 );
 $stmt->execute(['user_id' => $user['id']]);
 $goals = $stmt->fetchAll();
+
+$planCards = [
+    'free' => ['icon' => '🌱'],
+    'Teste Gratis' => ['icon' => '🌱'],
+    'Premium' => ['icon' => '👑'],
+    'Vip+' => ['icon' => '⭐'],
+    'Vip+ Pro Max' => ['icon' => '💎'],
+];
+$planCard = $planCards[$user['plan_name'] ?? ''] ?? null;
+$planDaysRemaining = null;
+$planDescription = 'Sem data de expiracao';
+
+if (($user['plan_name'] ?? '') === 'free') {
+    $planDescription = 'Gratis permanente';
+} elseif (!empty($user['plan_expires_at'])) {
+    $today = new DateTimeImmutable('today');
+    $expiresAt = new DateTimeImmutable((string) $user['plan_expires_at']);
+    $planDaysRemaining = max((int) $today->diff($expiresAt)->format('%r%a'), 0);
+    $planDescription = $planDaysRemaining . ' dias restantes';
+}
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -124,7 +133,7 @@ $goals = $stmt->fetchAll();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard | Salva DinDin</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-1">
+    <link rel="stylesheet" href="/assets/css/style.css?v=responsive-3">
     <script>
         (() => {
             const savedTheme = localStorage.getItem('salvadindin-theme');
@@ -137,13 +146,15 @@ $goals = $stmt->fetchAll();
     <div class="app-shell">
         <aside class="sidebar">
             <a class="brand-lockup" href="/dashboard.php">
-                <img class="brand-logo" src="/assets/img/logo2.png" alt="Salva DinDin Controle Financeiro">
+                <img class="brand-logo" src="/assets/img/logon.png" alt="Salva DinDin Controle Financeiro">
             </a>
             <nav class="nav-list" aria-label="Principal">
                 <a class="nav-item active" href="/dashboard.php">Dashboard</a>
                 <a class="nav-item" href="/transactions.php">Movimentacoes</a>
+                <a class="nav-item" href="/whatsapp.php"><?= whatsapp_integration_enabled() ? 'Whatsapp' : 'WhatsApp desativado' ?></a>
+                <a class="nav-item" href="/graficos.php">Graficos</a>
+                <a class="nav-item" href="/debts.php">Dividas</a>
                 <a class="nav-item" href="/goals.php">Metas</a>
-                <a class="nav-item" href="/investments.php">Investimentos</a>
                 <?php if (is_admin_user($user)): ?>
                     <a class="nav-item" href="/admin/">Admin</a>
                 <?php endif; ?>
@@ -157,7 +168,18 @@ $goals = $stmt->fetchAll();
                     <p class="eyebrow">Visao geral</p>
                     <h1>Ola, <?= e(explode(' ', $user['name'])[0]) ?></h1>
                 </div>
-                <a class="button button-secondary" href="/transactions.php">Nova movimentacao</a>
+                <div class="topbar-actions">
+                    <?php if ($planCard): ?>
+                        <div class="plan-card" aria-label="Plano atual">
+                            <span class="plan-card-icon" aria-hidden="true"><?= e($planCard['icon']) ?></span>
+                            <div>
+                                <strong><?= e($user['plan_name']) ?></strong>
+                                <small><?= e($planDescription) ?></small>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    <a class="button button-secondary" href="/transactions.php">Nova movimentacao</a>
+                </div>
             </header>
 
             <section class="metrics-grid" aria-label="Resumo financeiro">
@@ -179,7 +201,7 @@ $goals = $stmt->fetchAll();
                 <article class="metric-card">
                     <span>Restante para gastar</span>
                     <strong class="<?= $remainingToSpend >= 0 ? 'positive' : 'negative' ?>"><?= money($remainingToSpend) ?></strong>
-                    <small>Receitas - despesas - investimentos</small>
+                    <small>Receitas - despesas</small>
                 </article>
             </section>
 
@@ -219,13 +241,6 @@ $goals = $stmt->fetchAll();
                     </div>
                 </article>
 
-                <article class="panel insight-card">
-                    <div class="panel-heading">
-                        <h2>Reservas & investimentos</h2>
-                    </div>
-                    <strong class="insight-value"><?= money($monthInvestments) ?></strong>
-                    <small>Movimentos registrados no modulo de investimentos</small>
-                </article>
             </section>
 
             <section class="two-column">
@@ -280,6 +295,6 @@ $goals = $stmt->fetchAll();
             </section>
         </main>
     </div>
-    <script src="/assets/js/app.js?v=responsive-1"></script>
+    <script src="/assets/js/app.js?v=responsive-3"></script>
 </body>
 </html>
