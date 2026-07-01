@@ -2,8 +2,6 @@
 
 Sistema simples de controle financeiro pessoal feito em PHP e PostgreSQL.
 
-Acesse e teste: https://salvadindin.online/
-
 ## Recursos
 
 - Cadastro e login de usuarios
