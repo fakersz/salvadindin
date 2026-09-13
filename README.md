@@ -1,56 +1,63 @@
 # Salvadindin
 
-Sistema simples de controle financeiro pessoal feito em PHP e PostgreSQL.
+Sistema de controle financeiro pessoal desenvolvido em PHP e PostgreSQL como projeto de estudo e portfólio.
 
-## Recursos
+## Funcionalidades
 
-- Cadastro e login de usuarios
+- Cadastro e login de usuários
 - Dashboard financeiro
-- Lancamentos de receitas e despesas
+- Lançamentos de receitas e despesas
 - Metas financeiras
 - Investimentos
 - Painel administrativo
 
-## Requisitos
+## Tecnologias
 
 - PHP 8.2+
 - PostgreSQL 14+
+- HTML, CSS e JavaScript
 - Servidor web apontando para a pasta `public`
 
-## Configuracao
+## O que este projeto demonstra
 
-1. Copie o arquivo de ambiente:
+- Desenvolvimento de aplicação web com autenticação
+- Integração entre backend e PostgreSQL
+- Organização de dados financeiros
+- Criação de dashboard e módulos de gestão
+- Configuração de ambiente por arquivo `.env`
+
+## Configuração local
+
+Copie o arquivo de ambiente:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Ajuste as variaveis do banco e da URL no `.env`.
+Ajuste as variáveis do banco de dados e da URL da aplicação no `.env`.
 
-3. Crie o banco PostgreSQL e importe a estrutura:
+Depois crie o banco PostgreSQL e importe a estrutura:
 
 ```bash
 psql -U salvadindin_user -d salvadindin -f database/schema.sql
 ```
 
-4. Configure o servidor web para usar `public` como raiz do site.
+Configure o servidor web para usar `public` como raiz do site.
 
-## Prints
+## Screenshots
 
 <p>
-  <img src="imgprints/print.jpeg" alt="Print do Salvadindin" width="420">
-  <img src="imgprints/print2.jpeg" alt="Print do dashboard do Salvadindin" width="420">
-  <img src="imgprints/print3.jpeg" alt="Print de tela financeira do Salvadindin" width="420">
-  <img src="imgprints/print4.jpeg" alt="Print de tela do Salvadindin" width="420">
-  <img src="imgprints/print44.jpeg" alt="Print de painel do Salvadindin" width="420">
-  <img src="imgprints/a.jpeg" alt="Print da aplicacao Salvadindin" width="420">
-  <img src="imgprints/aa.jpeg" alt="Print da interface do Salvadindin" width="420">
-  <img src="imgprints/as.jpeg" alt="Print de recursos do Salvadindin" width="420">
-  <img src="imgprints/assd.jpeg" alt="Print de demonstracao do Salvadindin" width="420">
-  <img src="imgprints/sada.jpeg" alt="Print do sistema Salvadindin" width="420">
-  <img src="imgprints/safc.jpeg" alt="Print final do Salvadindin" width="420">
+  <img src="imgprints/print.jpeg" alt="Tela do Salvadindin" width="420">
+  <img src="imgprints/print2.jpeg" alt="Dashboard do Salvadindin" width="420">
+  <img src="imgprints/print3.jpeg" alt="Tela financeira do Salvadindin" width="420">
+  <img src="imgprints/print4.jpeg" alt="Tela do Salvadindin" width="420">
 </p>
 
-## Seguranca
+## Segurança
 
-O arquivo `.env` real nao deve ser publicado. Use apenas `.env.example` como referencia.
+O arquivo `.env` real não deve ser publicado. Utilize apenas `.env.example` como referência e mantenha credenciais fora do repositório.
+
+## Autor
+
+**Jean Peixoto**  
+[LinkedIn](https://www.linkedin.com/in/jeanpeixototi/) • [GitHub](https://github.com/fakersz)
