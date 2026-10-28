@@ -1,23 +1,26 @@
+# Secrets and local environments
 .env
 .env.*
 !.env.example
-
-.DS_Store
-Thumbs.db
-
+*.pem
+*.key
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+# Local data and tools
+.tools/
 *.log
-*.tmp
-*.bak
-*.backup
-*.sql.gz
 *.dump
-
-/vendor/
-/node_modules/
-
-/storage/
-/cache/
-/sessions/
-.env
-uploads/
-storage/
+*.sql.gz
+.DS_Store
+.vscode/

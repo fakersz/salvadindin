@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+}
+
+:root {
+  color-scheme: light;
+  --canvas: #fafaf9;
+  --surface: #ffffff;
+  --ink: #1c1917;
+  --muted: #57534e;
+  --line: #e7e5e4;
+  --accent: #15803d;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --canvas: #141615; --surface: #1c201d; --ink: #f5f5f4;
+    --muted: #b2b8b2; --line: #343b35; --accent: #86efac;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #141615; --surface: #1c201d; --ink: #f5f5f4;
+  --muted: #b2b8b2; --line: #343b35; --accent: #86efac;
+}
+body { margin: 0; min-width: 320px; }
+a, button, select { outline-offset: 4px; }
+:focus-visible { outline: 2px solid var(--accent); }
