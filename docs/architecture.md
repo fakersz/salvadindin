@@ -21,8 +21,8 @@ As credenciais ficam em arquivo root-only fora do repositório.
 - `backend/app/api`: rotas HTTP sob `/api`.
 - `backend/app/core`: configuração tipada e envelope de erros.
 - `backend/app/db`: SQLAlchemy 2, engine com pool_pre_ping e pool limitado.
-- `backend/app/auth`: reserva para trabalho futuro, sem autenticação implementada.
-- `backend/migrations`: Alembic, sem revisões ou tabelas de negócio nesta etapa.
+- `backend/app/auth`: contas, sessões, CSRF, limites persistentes e recuperação.
+- `backend/migrations`: Alembic; revisão `0001_auth` para as quatro tabelas de acesso.
 - `frontend/src`: React, Tailwind 4 e temas sistema/claro/escuro.
 - `infra`: configuração de implantação e orientações operacionais.
 
@@ -37,10 +37,12 @@ Os health checks verificam readiness do backend e HTTP do frontend.
 
 Erros usam `{"error": {"code": "...", "message": "..."}}`, sem detalhes internos.
 `APP_ENV=production` desativa documentação da API. Migrações são explícitas;
-nenhuma criação de tabelas ocorre no startup. A tabela técnica Alembic existe,
-sem revisões, após o primeiro `upgrade head`.
+nenhuma criação de tabelas ocorre no startup. A revisão de autenticação é `0001_auth`. As tabelas têm UUIDs, timestamps com
+timezone, constraints e índices. Tokens de sessão e códigos só persistem como
+hashes. A dependência `require_auth` deve proteger as futuras rotas financeiras.
 
-Próximas etapas de produto: autenticação, usuários e entidades financeiras.
+A autenticação já está implementada; as próximas etapas de produto são as
+entidades financeiras. O cadastro público é controlado por variável de ambiente.
 CI, monitoramento, backups recorrentes, restauração comprovada e revisão de
 segurança/privacidade continuam pendentes. Não há declaração de conformidade
 LGPD nem licença open source escolhida.

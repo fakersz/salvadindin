@@ -37,3 +37,44 @@
 body { margin: 0; min-width: 320px; }
 a, button, select { outline-offset: 4px; }
 :focus-visible { outline: 2px solid var(--accent); }
+
+.auth-shell { min-height: 100dvh; display: flex; flex-direction: column; }
+.auth-header { width: min(100%, 1100px); margin: 0 auto; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; text-decoration: none; }
+.brand span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: white; background: #15803d; }
+.theme-label { display: flex; align-items: center; gap: 8px; font-size: .875rem; }
+.theme-label select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px; }
+.auth-main { flex: 1; display: grid; align-content: center; justify-items: center; padding: 32px 20px 56px; }
+.auth-card { width: 100%; max-width: 460px; padding: clamp(24px, 5vw, 40px); background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 12px 40px #00000005; }
+.auth-card h1 { font-size: clamp(1.65rem, 5vw, 2rem); line-height: 1.2; letter-spacing: -.035em; margin: 12px 0 16px; font-weight: 650; overflow-wrap: anywhere; }
+.auth-card p { color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+.eyebrow { color: var(--accent); font-size: .8rem; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
+.field { margin: 22px 0; }
+.field > label { display: block; font-size: .9rem; font-weight: 550; margin-bottom: 8px; }
+.field input { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--canvas); color: var(--ink); border-radius: 10px; padding: 12px; font: inherit; }
+.field small { display: block; color: var(--muted); font-size: .77rem; line-height: 1.5; margin-top: 7px; }
+.password-wrap { display: flex; position: relative; }
+.password-wrap input { padding-right: 80px; }
+.show-password { position: absolute; right: 6px; top: 6px; bottom: 6px; padding: 0 8px; font-size: .77rem; color: var(--accent); cursor: pointer; }
+.button { width: 100%; display: inline-flex; justify-content: center; align-items: center; border: 1px solid transparent; border-radius: 10px; padding: 12px 16px; background: #15803d; color: white; font-weight: 600; cursor: pointer; min-height: 46px; }
+.button:hover { background: #166534; }
+.button:disabled { opacity: .55; cursor: not-allowed; }
+.button.secondary { background: transparent; color: var(--ink); border-color: var(--line); margin: 12px 0; }
+.button.secondary:hover { background: var(--canvas); }
+.auth-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 20px; margin-top: 24px; font-size: .85rem; }
+.auth-links a, .notice a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.auth-card .form-error { border: 1px solid #f87171; color: var(--ink); background: #ef44440c; border-radius: 10px; padding: 12px; font-size: .9rem; }
+.notice { padding: 14px; background: var(--canvas); border: 1px solid var(--line); border-radius: 10px; font-size: .9rem; color: var(--muted); line-height: 1.6; margin: 20px 0; }
+.requirements { font-size: .8rem; line-height: 1.8; color: var(--muted); margin: -4px 0 22px; padding: 0; list-style: none; }
+.requirements [data-met="true"] { color: var(--accent); }
+.auth-footer { text-align: center; color: var(--muted); font-size: .77rem; padding: 24px; }
+.codes-card { max-width: 640px; }
+.codes-list { list-style: none; margin: 24px 0; padding: 0; display: grid; gap: 8px; }
+.codes-list li { padding: 10px; border-radius: 6px; background: var(--canvas); border: 1px solid var(--line); text-align: center; }
+.codes-list code { font-size: clamp(.66rem, 2.65vw, .9rem); }
+.check-label { display: flex; align-items: flex-start; gap: 10px; font-size: .85rem; line-height: 1.5; margin: 20px 0; }
+.check-label input { flex-shrink: 0; margin-top: 3px; width: 18px; height: 18px; accent-color: #15803d; }
+.security-panel { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
+.security-panel summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
+.security-panel p { font-size: .85rem; margin-top: 16px; }
+.loading { color: var(--muted); }

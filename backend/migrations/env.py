@@ -1,10 +1,11 @@
 from alembic import context
 
+from app.auth import models  # noqa: F401
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import get_engine
 
-# Import future model modules here before autogeneration.
+# Register auth models for migrations.
 target_metadata = Base.metadata
 
 if context.is_offline_mode():

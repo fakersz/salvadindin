@@ -1,0 +1,89 @@
+const assert = require('node:assert/strict')
+const { randomBytes } = require('node:crypto')
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
+const base = process.env.AUTH_E2E_URL || 'https://localhost:15443'
+assert(['localhost', '127.0.0.1'].includes(new URL(base).hostname), 'Only disposable loopback test environments allowed')
+const username = `e2e.${randomBytes(5).toString('hex')}`
+const password = '🔒'.repeat(100) + randomBytes(16).toString('base64url') + '!'
+const nextPassword = randomBytes(24).toString('base64url') + '!'
+
+let step = 'browser launch'
+;(async () => {
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH })
+  try {
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 390, height: 844 } })
+    const page = await context.newPage()
+    const errors = []
+    page.on('pageerror', e => errors.push(e.message))
+    step = 'protected route'
+    await page.goto(base + '/app')
+    await page.waitForURL('**/login')
+    assert.equal(await page.locator('h1').innerText(), 'Bom ter você por aqui')
+    step = 'registration'
+    await page.goto(base + '/register')
+    await page.locator('#username').fill(username)
+    await page.locator('#password').fill(password)
+    await page.getByRole('button', { name: 'Mostrar senha', exact: true }).click()
+    assert.equal(await page.locator('#password').getAttribute('type'), 'text')
+    await page.locator('#password_confirmation').fill(password)
+    await page.getByRole('button', { name: 'Criar conta', exact: true }).click()
+    await page.getByRole('heading', { name: 'Guarde seus códigos' }).waitFor()
+    step = 'recovery display'
+    const codes = await page.locator('.codes-list code').allTextContents()
+    assert.equal(codes.length, 10)
+    assert.equal(await page.getByRole('button', { name: 'Continuar', exact: true }).isDisabled(), true)
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'Continuar', exact: true }).click()
+    await page.waitForURL('**/app')
+    await page.getByRole('heading', { name: `Olá, ${username}.` }).waitFor()
+    step = 'cookie and layout'
+    const sessionCookie = (await context.cookies()).find(c => c.name === '__Host-salvadindin_session')
+    assert(sessionCookie.httpOnly && sessionCookie.secure && sessionCookie.sameSite === 'Lax')
+    assert.equal(await page.evaluate(() => localStorage.length), 0)
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    await page.locator('.theme-label select').selectOption('dark')
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark')
+    await page.getByRole('button', { name: 'Sair', exact: true }).click()
+    await page.waitForURL('**/login')
+    await page.locator('#username').fill(username)
+    await page.locator('#password').fill(password)
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+    await page.waitForURL('**/app')
+    step = 'regeneration'
+    await page.locator('summary').click()
+    await page.locator('#password').fill(password)
+    await page.getByRole('button', { name: 'Gerar novos códigos', exact: true }).click()
+    await page.getByRole('heading', { name: 'Guarde seus códigos' }).waitFor()
+    const regenerated = await page.locator('.codes-list code').allTextContents()
+    assert(!regenerated.some(c => codes.includes(c)))
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'Continuar', exact: true }).click()
+    await page.getByRole('button', { name: 'Sair', exact: true }).click()
+    await page.waitForURL('**/login')
+    step = 'password recovery'
+    await page.goto(base + '/recover')
+    await page.locator('#username').fill(username)
+    await page.locator('#recovery-code').fill(regenerated[0])
+    await page.locator('#password').fill(nextPassword)
+    await page.locator('#password_confirmation').fill(nextPassword)
+    await page.getByRole('button', { name: 'Redefinir senha', exact: true }).click()
+    await page.getByRole('status').filter({ hasText: 'Senha redefinida' }).waitFor()
+    await page.goto(base + '/login')
+    await page.locator('#username').fill(username)
+    await page.locator('#password').fill(password)
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+    await page.getByRole('alert').filter({ hasText: 'Usuário ou senha inválidos' }).waitFor()
+    await page.locator('#password').fill(nextPassword)
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+    await page.waitForURL('**/app')
+    await page.getByRole('heading', { name: `Olá, ${username}.` }).waitFor()
+    step = 'desktop and final logout'
+    await page.setViewportSize({ width: 1280, height: 900 })
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    await page.getByRole('button', { name: 'Sair', exact: true }).click()
+    await page.waitForURL('**/login')
+    assert.deepEqual(errors, [])
+    console.log('PASS: isolated HTTPS browser flow; registration, code confirmation, login/logout, regeneration, recovery, new login, cookies, themes and mobile/desktop layout. No credentials logged.')
+    await context.close()
+  } finally { await browser.close() }
+})().catch(e => { console.error('FAIL: isolated browser flow at ' + step + '; ' + e.name); console.error((e.stack || '').split('\n').filter(x => x.trim().startsWith('at ')).join('\n')); process.exitCode = 1 })

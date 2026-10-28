@@ -2,8 +2,9 @@
 
 Assistente financeiro pessoal gratuito e minimalista, desenvolvido em aberto.
 A fundação está publicada em **https://salvadindin.online** e
-**https://www.salvadindin.online**. Ainda não há cadastro, autenticação,
-dashboard ou funcionalidades financeiras.
+**https://www.salvadindin.online**. Cadastro, login, sessões e recuperação por
+códigos estão implementados. O cadastro público começa desativado por variável
+de ambiente. Ainda não há dashboard ou funcionalidades financeiras.
 
 O desenvolvimento acontece em `v2-development`; `main` e `legacy-v1` permanecem
 preservadas. A licença open source ainda está em definição.
@@ -96,14 +97,31 @@ exclusivos de desenvolvimento e omita `POSTGRES_SOCKET_DIR`. O Vite encaminha
 `DATABASE_URL` substitui os componentes de conexão quando informado; não o
 combine com a configuração de socket esperando que esta tenha prioridade.
 
+## Autenticação
+
+Páginas `/login`, `/register`, `/recover` e `/app`. Senhas Argon2id; sessões
+opacas em cookies HttpOnly/Secure/SameSite=Lax, revogáveis no banco. Sem tokens
+em localStorage, e-mail ou telefone. Códigos de recuperação de uso único são
+exibidos uma vez e devem ser guardados pelo usuário.
+
+Configure `AUTH_SECRET` aleatório com pelo menos 32 caracteres no arquivo
+privado e mantenha `PUBLIC_REGISTRATION_ENABLED=false` durante a validação
+inicial. A ativação é uma decisão operacional explícita: alterar somente essa
+variável para `true` e recriar apenas o backend com `docker compose up -d
+--no-deps backend`. O endpoint `/api/auth/csrf` informa o estado público do cadastro.
+Nunca inclua credenciais ou códigos em comandos de terminal, logs ou Git.
+
+Veja [autenticação e testes isolados](docs/authentication.md).
+
 ## Migrações e API
 
 `/api/health` verifica o processo; `/api/health/ready` executa `SELECT 1`.
 `APP_ENV=production` desativa `/api/docs` e `/api/openapi.json`.
 A API não cria tabelas automaticamente ao iniciar.
 
-Alembic foi executado no banco exclusivo; ainda não existem revisões ou modelos
-de negócio. A tabela técnica `alembic_version` permanece sem revisões aplicadas.
+A revisão `0001_auth` cria users, sessions, recovery_codes e auth_rate_limits.
+Migrações são aplicadas exclusivamente no banco SalvaDinDin; os testes usam
+outra instância PostgreSQL descartável, sem acesso ao cluster do host.
 Mudanças futuras de modelo exigem revisão explícita antes de `upgrade head`.
 
 HTTPS usa Let's Encrypt com renovação pelo timer Certbot e hook exclusivo que
