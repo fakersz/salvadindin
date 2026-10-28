@@ -1,75 +1,74 @@
 # SalvaDinDin 2.0
 
-Assistente financeiro pessoal gratuito, minimalista e desenvolvido em aberto.
-Esta versão reconstrói a base do projeto com Python e React, de forma independente
-do sistema PHP anterior. O legado permanece na branch `legacy-v1`.
+Assistente financeiro pessoal gratuito e minimalista, desenvolvido em aberto.
+A fundação está publicada em **https://salvadindin.online** e
+**https://www.salvadindin.online**. Ainda não há cadastro, autenticação,
+dashboard ou funcionalidades financeiras.
 
-## Status
+O desenvolvimento acontece em `v2-development`; `main` e `legacy-v1` permanecem
+preservadas. A licença open source ainda está em definição.
 
-Fundação técnica em `v2-development`: API com health checks, conexão PostgreSQL,
-estrutura de migrações, testes e página inicial responsiva com temas sistema/claro/escuro.
-Ainda não existem usuários, autenticação, dashboard ou funcionalidades financeiras.
-`main` permanece preservada. Domínio futuro: `salvadindin.online`; nenhum deploy/DNS
-é configurado nesta missão. A licença open source ainda está em definição.
+## Arquitetura em execução
 
-## Tecnologias
+- Nginx do host: HTTPS, redirecionamento HTTP e proxy por domínio.
+- Frontend: React + TypeScript + Vite + Tailwind; build estático servido por
+  Nginx sem root no container `salvadindin-frontend`.
+- Backend: FastAPI + SQLAlchemy + Psycopg, container `salvadindin-backend` sem root.
+- PostgreSQL 18 no host; banco `salvadindin_v2`, role `salvadindin_app` sem
+  SUPERUSER, CREATEDB, CREATEROLE, REPLICATION ou BYPASSRLS.
+- Somente o backend recebe o diretório do socket PostgreSQL, em bind somente
+  leitura. Autenticação SCRAM e regras HBA específicas restringem essa role ao
+  banco do projeto por socket. Não existe container PostgreSQL.
 
-- Python 3.12+ (container e validação: 3.14), FastAPI, Pydantic Settings, SQLAlchemy 2.
-- PostgreSQL 18, Psycopg 3, Alembic; pytest e Ruff no desenvolvimento.
-- Node.js 24 LTS, React 19, TypeScript 5.9, Vite 7, Tailwind CSS 4.
-- Docker Compose; Nginx sem privilégios exclusivamente no container frontend.
-
-Versões exatas Python estão em `backend/requirements*.lock`, com hashes;
-as do frontend estão em `frontend/package-lock.json`. Imagens usam tags de versão;
-fixação por digest poderá ser adotada na etapa de deploy.
+As portas são `127.0.0.1:15173` (frontend) e `127.0.0.1:18000` (backend).
+O PostgreSQL continua em localhost:5432 e não é publicado pelos containers.
+A rede exclusiva é `salvadindin_v2_application` (`172.30.10.0/24`).
 
 ## Estrutura
 
 ```text
-backend/       API, configuração, testes e migrações Alembic
+backend/       API, testes, configuração e migrações Alembic
 frontend/      React + TypeScript + Vite + Tailwind
-infra/         Docker e verificação prévia de recursos/portas
-docs/          Arquitetura e decisões da fundação
-compose.yaml   Serviços isolados de desenvolvimento
-.env.example   Modelo de configuração, sem credenciais reais
+infra/         Templates Nginx, Docker, HBA e orientações operacionais
+docs/          Arquitetura e registros de validação
+compose.yaml   Dois serviços de produção, sem banco em container
+.env.example   Exemplo sem credenciais reais
 ```
 
-## Executar com Docker
+## Operação na VPS preparada
 
-Pré-requisitos: Docker Engine e plugin Compose instalados em um ambiente de
-desenvolvimento. Não instale/inicie Docker em um host compartilhado sem avaliar
-impactos de rede e firewall. A VPS desta missão ainda não tem Docker Engine.
+Execute os comandos administrativos na raiz do checkout. O usuário de
+projeto não recebe acesso automático ao grupo Docker, equivalente a root.
 
 ```bash
-git clone --branch v2-development git@github.com:fakersz/salvadindin.git
-cd salvadindin
-cp .env.example .env
-# Edite .env: substitua POSTGRES_PASSWORD por uma senha aleatória exclusiva.
-python3 infra/preflight.py
-docker compose config --quiet
-docker compose up --build -d
-docker compose ps
+sudo docker compose config --quiet
+sudo docker compose build
+sudo docker compose run --rm --no-deps backend alembic upgrade head
+sudo docker compose up -d --wait
+sudo docker compose ps
+curl --fail https://salvadindin.online/api/health
+curl --fail https://salvadindin.online/api/health/ready
 ```
 
-Abra `http://127.0.0.1:15173`; API: `http://127.0.0.1:18000/api/health`;
-documentação: `http://127.0.0.1:18000/api/docs` no modo development.
-Os binds são locais. Para acessar na VPS, use túnel SSH a partir do seu computador:
+O Compose lê as credenciais de `/etc/salvadindin/backend.env`, fora do Git,
+com diretório root:root 0700 e arquivo 0600. Não exiba `docker compose config`
+sem `--quiet`, nem o ambiente completo dos containers: podem revelar segredos.
+O caminho pode ser substituído com `SALVADINDIN_ENV_FILE`.
 
-```bash
-ssh -L 15173:127.0.0.1:15173 -L 18000:127.0.0.1:18000 usuario@servidor
-```
+A execução pressupõe banco, role, regras HBA, socket e rede preparados conforme
+[infra/README.md](infra/README.md). Não instale ou configure serviços de outro
+projeto seguindo este README. Não aponte o backend ou Alembic para outro banco.
 
-O PostgreSQL não publica porta no host. Dados ficam no volume exclusivo
-`salvadindin_v2_postgres_data`. As portas do projeto não usam 80, 443, 5432 ou 8000
-do host. Para parar apenas este projeto: `docker compose stop`. Não remova volumes.
-Veja [orientações de infraestrutura](infra/README.md).
+Os limites somam 512 MiB e 0,75 CPU; builds precisam de margem adicional.
+Os containers usam `unless-stopped`, rootfs somente leitura, tmpfs, remoção de
+capabilities, limites de processos e logs com rotação (3 arquivos de 10 MiB).
+Não há reinício automático em resposta apenas a um health check malsucedido.
 
-## Execução manual e testes
+## Desenvolvimento e testes
 
-Use usuário de desenvolvimento sem root. Requer Python 3.12+ e Node 24.
-A criação da venv depende do pacote de suporte a venv da sua distribuição.
-Não conecte ao banco de produção. Configure `.env` para um PostgreSQL dedicado de
-**desenvolvimento** antes de testar readiness, migrações ou funcionalidades com banco.
+Python 3.12+ e Node 24. Dependências estão fixadas em locks Python com hashes
+e em `frontend/package-lock.json`. Use um ambiente de desenvolvimento separado.
+Não use as credenciais de produção nos testes.
 
 ```bash
 cd backend
@@ -78,54 +77,38 @@ python3 -m venv .venv
 .venv/bin/python -m pip install --no-deps -e .
 .venv/bin/pytest -q
 .venv/bin/ruff check .
-.venv/bin/uvicorn app.main:create_app --factory --host 127.0.0.1 --port 18000
+.venv/bin/ruff format --check .
 ```
 
-Os testes substituem a sessão do banco; não acessam PostgreSQL nem dados existentes.
-Em outro terminal, na raiz do repositório:
+Os testes substituem o acesso ao banco e usam uma conexão de teste inválida
+para impedir acesso acidental ao banco do host.
 
 ```bash
 cd frontend
 npm ci
 npm run build
 npm audit --audit-level=moderate
-npm run dev
 ```
 
-Vite faz proxy de `/api` para o backend local. O build gera `frontend/dist`.
-Para atualizar locks Python intencionalmente, use `uv pip compile pyproject.toml
---universal --generate-hashes -o requirements.lock` e repita com `--extra dev
--o requirements-dev.lock`, na pasta backend; revise e teste antes de publicar.
+Para execução manual, configure `POSTGRES_HOST=127.0.0.1`, banco/usuário/senha
+exclusivos de desenvolvimento e omita `POSTGRES_SOCKET_DIR`. O Vite encaminha
+`/api` para `http://127.0.0.1:18000`, ajustável por `API_PROXY_TARGET`.
+`DATABASE_URL` substitui os componentes de conexão quando informado; não o
+combine com a configuração de socket esperando que esta tenha prioridade.
 
-## Migrações
+## Migrações e API
 
-Ainda não há tabelas nem revisões. Para uma mudança futura de modelos, com banco
-isolado configurado, dentro de backend:
+`/api/health` verifica o processo; `/api/health/ready` executa `SELECT 1`.
+`APP_ENV=production` desativa `/api/docs` e `/api/openapi.json`.
+A API não cria tabelas automaticamente ao iniciar.
 
-```bash
-.venv/bin/alembic revision --autogenerate -m "descrever a mudança"
-# Revise o script gerado antes de aplicar.
-.venv/bin/alembic upgrade head
-```
+Alembic foi executado no banco exclusivo; ainda não existem revisões ou modelos
+de negócio. A tabela técnica `alembic_version` permanece sem revisões aplicadas.
+Mudanças futuras de modelo exigem revisão explícita antes de `upgrade head`.
 
-No Compose, o comando equivalente é `docker compose exec backend alembic upgrade head`.
-Não há execução automática de migrações ao iniciar os serviços.
+HTTPS usa Let's Encrypt com renovação pelo timer Certbot e hook exclusivo que
+valida Nginx antes do reload. Não há HSTS preload.
 
-## Variáveis de ambiente
-
-| Variável | Uso |
-| --- | --- |
-| `APP_ENV` | `development`, `test` ou `production`; produção desativa documentação da API |
-| `POSTGRES_DB`, `POSTGRES_USER` | Nome do banco e usuário exclusivos da V2 |
-| `POSTGRES_PASSWORD` | Senha obrigatória no Compose; somente no `.env` local |
-| `POSTGRES_HOST`, `POSTGRES_PORT` | Conexão manual; no Compose são `db:5432` |
-| `DATABASE_URL` | Opcional, substitui `POSTGRES_*` no backend manual; use `postgresql+psycopg://` e codifique caracteres especiais |
-| `BACKEND_PORT`, `FRONTEND_PORT` | Portas do host no Compose, padrão `18000` e `15173` |
-| `API_PROXY_TARGET` | Destino do proxy Vite, padrão `http://127.0.0.1:18000` |
-
-O backend lê `.env` da raiz quando executado em backend; variáveis do processo têm
-prioridade. No Compose a senha é passada diretamente, sem concatenar uma URL.
-Nunca publique `.env`, dumps, chaves privadas ou senhas. Nenhuma conformidade completa
-com a LGPD foi declarada; segurança e privacidade exigem avaliação específica.
-
-Mais detalhes em [arquitetura](docs/architecture.md).
+Consulte [arquitetura](docs/architecture.md), [validação inicial](docs/validation.md)
+e [validação da publicação](docs/deployment.md). Segurança e privacidade exigem
+avaliação contínua; não há declaração de conformidade completa com a LGPD.

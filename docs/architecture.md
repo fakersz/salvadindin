@@ -1,35 +1,46 @@
 # Fundação V2
 
-A V2 é independente do PHP. O código anterior e seu histórico permanecem em
-`legacy-v1`; `main` não foi alterada. Não importe o schema SQL antigo na V2.
+A V2 é independente do legado PHP preservado em `legacy-v1`; `main` não é
+alterada. Não importe o schema SQL antigo na V2.
+
+```text
+HTTPS :443 → Nginx do host
+                ├─ /       → 127.0.0.1:15173 → frontend React estático
+                └─ /api/   → 127.0.0.1:18000 → FastAPI
+                                                   └─ socket Unix + SCRAM
+                                                      PostgreSQL 18 do host
+                                                      banco salvadindin_v2
+```
+
+O frontend e o backend são containers sem root, com limites de recursos e
+rede exclusiva. O PostgreSQL não está em container nem exposto à internet.
+Só o backend recebe o bind somente leitura do diretório de socket. A role
+`salvadindin_app` autentica apenas no banco do projeto por regras HBA específicas.
+As credenciais ficam em arquivo root-only fora do repositório.
 
 - `backend/app/api`: rotas HTTP sob `/api`.
 - `backend/app/core`: configuração tipada e envelope de erros.
-- `backend/app/db`: base declarativa SQLAlchemy 2, engine com pool_pre_ping e sessões.
+- `backend/app/db`: SQLAlchemy 2, engine com pool_pre_ping e pool limitado.
 - `backend/app/auth`: reserva para trabalho futuro, sem autenticação implementada.
-- `backend/migrations`: ambiente Alembic; ainda não existem tabelas/revisões.
-- `frontend/src`: aplicação React, estilos Tailwind 4 e tokens de tema.
-- `infra`: instruções e verificação de portas/recursos do ambiente de desenvolvimento.
+- `backend/migrations`: Alembic, sem revisões ou tabelas de negócio nesta etapa.
+- `frontend/src`: React, Tailwind 4 e temas sistema/claro/escuro.
+- `infra`: configuração de implantação e orientações operacionais.
 
-O frontend usa caminhos relativos `/api`; Vite faz proxy durante desenvolvimento,
-e o Nginx do container faz proxy no Compose. Nenhum segredo vai para o bundle.
-Variáveis `VITE_*` seriam públicas e não devem receber credenciais.
+O frontend usa caminhos relativos `/api`; Vite fornece proxy no desenvolvimento,
+e o Nginx do host roteia a API na implantação. O Nginx do container também fornece
+proxy local para verificações internas. Nenhum segredo é enviado no bundle.
+Variáveis `VITE_*` são públicas e não devem receber credenciais.
 
-`GET /api/health` verifica o processo sem acessar o banco.
-`GET /api/health/ready` executa `SELECT 1` e retorna 503 se o banco estiver indisponível.
-Health checks do Compose usam readiness para o backend e disponibilidade HTTP
-para o frontend; o banco usa pg_isready.
+`GET /api/health` verifica o processo sem consultar banco.
+`GET /api/health/ready` executa `SELECT 1` e retorna 503 em falha.
+Os health checks verificam readiness do backend e HTTP do frontend.
 
-Erros usam `{"error": {"code": "...", "message": "..."}}` sem expor detalhes
-internos ou entradas recebidas. Configuração exige credenciais explícitas.
-DATABASE_URL é opcional para execução manual; no Compose, os componentes
-POSTGRES_* constroem a conexão sem problemas com caracteres especiais na senha.
+Erros usam `{"error": {"code": "...", "message": "..."}}`, sem detalhes internos.
+`APP_ENV=production` desativa documentação da API. Migrações são explícitas;
+nenhuma criação de tabelas ocorre no startup. A tabela técnica Alembic existe,
+sem revisões, após o primeiro `upgrade head`.
 
-Migrações são uma operação explícita. Com modelos futuros, importe-os em
-`backend/migrations/env.py` antes de executar autogenerate. Nenhuma criação de
-tabelas ocorre no startup; nenhum acesso ao banco é necessário para testar liveness.
-
-Ficam para próximas missões: autenticação, usuários, entidades financeiras,
-testes de integração com PostgreSQL isolado, execução dos containers, CI,
-deploy, HTTPS e revisão de segurança/privacidade. Não há avaliação de conformidade LGPD.
-A licença open source ainda precisa ser escolhida; nenhuma licença foi presumida.
+Próximas etapas de produto: autenticação, usuários e entidades financeiras.
+CI, monitoramento, backups recorrentes, restauração comprovada e revisão de
+segurança/privacidade continuam pendentes. Não há declaração de conformidade
+LGPD nem licença open source escolhida.

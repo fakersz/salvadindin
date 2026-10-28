@@ -1,53 +1,58 @@
 name: salvadindin-v2
 
-services:
-  db:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-salvadindin_v2}
-      POSTGRES_USER: ${POSTGRES_USER:-salvadindin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
-    volumes:
-      - postgres_data:/var/lib/postgresql
-    networks: [database]
-    healthcheck:
-      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    mem_limit: 512m
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
+services:
   backend:
+    container_name: salvadindin-backend
+    image: salvadindin-backend:2.0
     build: ./backend
+    env_file:
+      - ${SALVADINDIN_ENV_FILE:-/etc/salvadindin/backend.env}
     environment:
-      APP_ENV: ${APP_ENV:-development}
-      POSTGRES_HOST: db
+      APP_ENV: production
+      POSTGRES_SOCKET_DIR: /run/postgresql
       POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB:-salvadindin_v2}
-      POSTGRES_USER: ${POSTGRES_USER:-salvadindin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+      POSTGRES_DB: salvadindin_v2
+      POSTGRES_USER: salvadindin_app
+    volumes:
+      - type: bind
+        source: /var/run/postgresql
+        target: /run/postgresql
+        read_only: true
+        bind:
+          create_host_path: false
     ports:
-      - "127.0.0.1:${BACKEND_PORT:-18000}:8000"
-    networks: [application, database]
-    depends_on:
-      db:
-        condition: service_healthy
+      - "127.0.0.1:18000:8000"
+    networks: [application]
+    command: ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "172.30.10.1"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready', timeout=4)"]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 20s
+    restart: unless-stopped
     mem_limit: 384m
+    cpus: 0.50
+    pids_limit: 100
     init: true
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
+    logging: *logging
 
   frontend:
+    container_name: salvadindin-frontend
+    image: salvadindin-frontend:2.0
     build: ./frontend
     ports:
-      - "127.0.0.1:${FRONTEND_PORT:-15173}:8080"
+      - "127.0.0.1:15173:8080"
     networks: [application]
     depends_on:
       backend:
@@ -58,17 +63,19 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
     mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 50
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
-
-volumes:
-  postgres_data:
-    name: salvadindin_v2_postgres_data
+    logging: *logging
 
 networks:
   application:
     name: salvadindin_v2_application
-  database:
-    name: salvadindin_v2_database
-    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24

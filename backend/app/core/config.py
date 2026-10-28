@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     app_env: Literal["development", "test", "production"] = "development"
     database_url: PostgresDsn | None = None
     postgres_host: str = "127.0.0.1"
+    postgres_socket_dir: str | None = None
     postgres_port: int = 5432
     postgres_db: str = "salvadindin_v2"
     postgres_user: str = "salvadindin"
@@ -34,9 +35,10 @@ class Settings(BaseSettings):
             "postgresql+psycopg",
             username=self.postgres_user,
             password=self.postgres_password.get_secret_value(),
-            host=self.postgres_host,
+            host=None if self.postgres_socket_dir else self.postgres_host,
             port=self.postgres_port,
             database=self.postgres_db,
+            query={"host": self.postgres_socket_dir} if self.postgres_socket_dir else {},
         )
 
 
