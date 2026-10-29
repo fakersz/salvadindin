@@ -145,3 +145,9 @@ valida Nginx antes do reload. Não há HSTS preload.
 Consulte [arquitetura](docs/architecture.md), [validação inicial](docs/validation.md)
 e [validação da publicação](docs/deployment.md). Segurança e privacidade exigem
 avaliação contínua; não há declaração de conformidade completa com a LGPD.
+
+### Integração WhatsApp oficial
+
+Vinculação e lançamentos com confirmação em `/app/settings/integrations`.
+A integração permanece indisponível sem as credenciais oficiais da Meta.
+Veja [configuração, segurança e testes](docs/whatsapp.md).

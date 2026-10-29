@@ -5,6 +5,8 @@ from app.auth.routes import router as auth_router
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.finance.routes import router as finance_router
+from app.whatsapp.delivery import lifespan
+from app.whatsapp.routes import router as whatsapp_router
 
 
 def create_app() -> FastAPI:
@@ -13,6 +15,7 @@ def create_app() -> FastAPI:
         title="SalvaDinDin API",
         version="2.0.0.dev0",
         debug=False,
+        lifespan=lifespan,
         docs_url="/api/docs" if settings.app_env != "production" else None,
         redoc_url=None,
         openapi_url="/api/openapi.json" if settings.app_env != "production" else None,
@@ -21,6 +24,7 @@ def create_app() -> FastAPI:
     app.include_router(router)
     app.include_router(auth_router)
     app.include_router(finance_router)
+    app.include_router(whatsapp_router)
 
     @app.middleware("http")
     async def auth_no_cache(request, call_next):

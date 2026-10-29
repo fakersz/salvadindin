@@ -25,6 +25,7 @@ from app.finance.schemas import (
     TransactionCreate,
     TransactionPatch,
 )
+from app.finance.service import active_accounts, add_transaction, check_transaction, find
 
 router = APIRouter(prefix="/api", tags=["finance"])
 Database = Annotated[Session, Depends(get_session)]
@@ -53,13 +54,6 @@ def finish(db):
         raise AppError(
             409, "financial_conflict", "Registro duplicado ou vinculado a movimentações."
         ) from None
-
-
-def find(db, model, identifier, owner):
-    row = db.scalar(select(model).where(model.id == identifier, model.user_id == owner))
-    if row is None:
-        raise AppError(404, "not_found", "Registro não encontrado.")
-    return row
 
 
 def money(value):
@@ -133,40 +127,6 @@ def category_data(row):
         "created_at": row.created_at,
         "updated_at": row.updated_at,
     }
-
-
-def active_accounts(db, owner, *identifiers):
-    for identifier in set(i for i in identifiers if i):
-        account = find(db, FinancialAccount, identifier, owner)
-        if not account.is_active:
-            raise AppError(
-                409, "account_archived", "Reative a conta antes de alterar suas movimentações."
-            )
-
-
-def check_transaction(db, owner, values):
-    active_accounts(db, owner, values["account_id"], values["destination_account_id"])
-    if values["type"] == "transfer":
-        if (
-            not values["destination_account_id"]
-            or values["destination_account_id"] == values["account_id"]
-            or values["category_id"]
-        ):
-            raise AppError(
-                422,
-                "invalid_transfer",
-                "Escolha duas contas diferentes e não use categoria na transferência.",
-            )
-    elif values["destination_account_id"]:
-        raise AppError(
-            422, "invalid_destination", "Destino é permitido apenas para transferências."
-        )
-    if values["category_id"]:
-        category = find(db, Category, values["category_id"], owner)
-        if category.type != values["type"]:
-            raise AppError(
-                422, "invalid_category", "A categoria precisa corresponder ao tipo da movimentação."
-            )
 
 
 @router.get("/accounts")
@@ -270,10 +230,7 @@ def get_transaction(identifier: uuid.UUID, db: Database, owner: Owner):
 
 @router.post("/transactions", status_code=201)
 def create_transaction(data: TransactionCreate, db: Database, owner: Owner):
-    values = data.model_dump()
-    check_transaction(db, owner, values)
-    row = Transaction(**values, user_id=owner, created_at=now(), updated_at=now())
-    db.add(row)
+    row = add_transaction(db, owner, data)
     finish(db)
     return tx_data(row)
 

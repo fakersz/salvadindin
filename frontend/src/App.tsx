@@ -391,6 +391,7 @@ function PrivateApp({ user }: { user: User }) {
       <span className="eyebrow">Seu espaço</span>
       <h1>Olá, {user.username}.</h1>
       <p>Gerencie seus códigos de recuperação e proteja seu acesso.</p>
+      <a className="integration-link" href="/app/settings/integrations">Integrações · WhatsApp →</a>
       <div className="notice">
         Se perder a senha e os códigos, não será possível recuperar o acesso.
       </div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { User } from "./api";
 import { mutate } from "./api";
+import { Integrations } from "./Integrations";
 import { accountTypes, finance, kinds, money, parseMoney } from "./financeApi";
 import type { Account, Category, Entry, Summary } from "./financeApi";
 
@@ -475,15 +476,17 @@ export function FinanceApp({
 }) {
   const path = window.location.pathname.replace(/\/$/, "");
   const section =
-    path === "/app/accounts"
-      ? "accounts"
-      : path === "/app/transactions"
-        ? "transactions"
-        : path === "/app/categories"
-          ? "categories"
-          : path === "/app/security"
-            ? "security"
-            : "dashboard";
+    path === "/app/settings/integrations"
+      ? "integrations"
+      : path === "/app/accounts"
+        ? "accounts"
+        : path === "/app/transactions"
+          ? "transactions"
+          : path === "/app/categories"
+            ? "categories"
+            : path === "/app/security"
+              ? "security"
+              : "dashboard";
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -671,12 +674,21 @@ export function FinanceApp({
               href={href}
               aria-label={label}
               className={key === "security" ? "security-link" : undefined}
-              aria-current={section === key ? "page" : undefined}
+              aria-current={
+                section === key ||
+                (section === "integrations" && key === "security")
+                  ? "page"
+                  : undefined
+              }
             >
               <NavIcon name={key} />
               <span className="nav-label-wide">{label}</span>
               <span className="nav-label-short">
-                {key === "dashboard" ? "Início" : key === "transactions" ? "Extrato" : label}
+                {key === "dashboard"
+                  ? "Início"
+                  : key === "transactions"
+                    ? "Extrato"
+                    : label}
               </span>
             </a>
           ))}
@@ -719,7 +731,9 @@ export function FinanceApp({
                       ? "Movimentações"
                       : section === "categories"
                         ? "Categorias"
-                        : "Segurança"}
+                        : section === "integrations"
+                          ? "Integrações"
+                          : "Segurança"}
               </h1>
             </div>
             {section === "accounts" ? (
@@ -737,7 +751,8 @@ export function FinanceApp({
                 Nova categoria
               </button>
             ) : (
-              section !== "security" && (
+              section !== "security" &&
+              section !== "integrations" && (
                 <button
                   className="button compact"
                   disabled={!accounts.some((a) => a.is_active)}
@@ -767,7 +782,9 @@ export function FinanceApp({
               </button>
             </div>
           )}
-          {section === "security" ? (
+          {section === "integrations" ? (
+            <Integrations />
+          ) : section === "security" ? (
             security
           ) : loading ? (
             <p role="status" className="empty-state">

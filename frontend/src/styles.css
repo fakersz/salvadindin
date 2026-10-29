@@ -370,3 +370,14 @@ a, button, select { outline-offset: 4px; }
   .account-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dashboard-columns { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
 }
+
+.integration-panel { max-width: 640px; }
+.integration-status { font-size: .75rem; color: var(--muted); }
+.integration-status.connected { color: var(--accent); }
+.integration-copy { font-size: .85rem; color: var(--muted); line-height: 1.7; margin-block: 20px; }
+.integration-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.integration-link { display: inline-flex; align-items: center; min-height: 44px; font-size: .85rem; color: var(--accent); }
+.link-code { background: var(--canvas); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.link-code p, .link-code small { display: block; color: var(--muted); font-size: .78rem; line-height: 1.7; }
+.link-code code { display: block; font-size: clamp(.8rem, 3.4vw, 1.05rem); margin-block: 12px; overflow-wrap: anywhere; user-select: all; }
+.integration-panel .security-panel p { color: var(--muted); line-height: 1.7; }

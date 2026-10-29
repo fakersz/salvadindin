@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     ]
     session_hours: int = Field(default=168, ge=1, le=720)
     auth_rate_limit_multiplier: int = Field(default=1, ge=1, le=10)
+    meta_app_secret: SecretStr | None = None
+    whatsapp_verify_token: SecretStr | None = None
+    whatsapp_access_token: SecretStr | None = None
+    whatsapp_phone_number_id: str | None = Field(default=None, pattern=r"^[0-9]{5,30}$")
+    whatsapp_api_version: str | None = Field(default=None, pattern=r"^v[0-9]{1,3}\.[0-9]{1,2}$")
     postgres_host: str = "127.0.0.1"
     postgres_socket_dir: str | None = None
     postgres_port: int = 5432
@@ -41,6 +46,23 @@ class Settings(BaseSettings):
         ):
             raise ValueError("Configure AUTH_SECRET com pelo menos 32 caracteres.")
         return self
+
+    @property
+    def whatsapp_ready(self) -> bool:
+        return bool(
+            all(
+                s and s.get_secret_value().strip()
+                for s in (
+                    self.meta_app_secret,
+                    self.whatsapp_verify_token,
+                    self.whatsapp_access_token,
+                )
+            )
+            and self.whatsapp_phone_number_id
+            and self.whatsapp_api_version
+            and self.auth_secret
+            and len(self.auth_secret.get_secret_value()) >= 32
+        )
 
     @property
     def sqlalchemy_url(self) -> URL:
