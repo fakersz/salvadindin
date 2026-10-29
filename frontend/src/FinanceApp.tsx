@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from "react";
 import type { User } from "./api";
 import { mutate } from "./api";
 import { Integrations } from "./Integrations";
+import { LegalFooter } from "./LegalFooter";
 import { accountTypes, finance, kinds, money, parseMoney } from "./financeApi";
 import type { Account, Category, Entry, Summary } from "./financeApi";
 
@@ -1181,6 +1182,7 @@ export function FinanceApp({
             </>
           )}
         </main>
+        <LegalFooter />
       </div>
       {modal && (
         <Dialog

@@ -4,10 +4,18 @@ import { authInfo, currentUser, mutate } from "./api";
 import type { AuthResult, User } from "./api";
 import { Landing } from "./Landing";
 import { FinanceApp } from "./FinanceApp";
+import { isLegalPath, LegalPage } from "./LegalPage";
+import { LegalFooter } from "./LegalFooter";
 
 type Mode = "login" | "register" | "recover";
 
-function Shell({ children }: { children: ReactNode }) {
+export function Shell({
+  children,
+  legal = false,
+}: {
+  children: ReactNode;
+  legal?: boolean;
+}) {
   const [theme, setTheme] = useState("system");
   function changeTheme(value: string) {
     setTheme(value);
@@ -15,7 +23,7 @@ function Shell({ children }: { children: ReactNode }) {
     else document.documentElement.dataset.theme = value;
   }
   return (
-    <div className="auth-shell">
+    <div className={"auth-shell" + (legal ? " legal-shell" : "")}>
       <header className="auth-header">
         <a href="/" className="brand">
           <span aria-hidden="true">$</span> SalvaDinDin
@@ -30,6 +38,7 @@ function Shell({ children }: { children: ReactNode }) {
         </label>
       </header>
       <main className="auth-main">{children}</main>
+      <LegalFooter />
     </div>
   );
 }
@@ -391,7 +400,9 @@ function PrivateApp({ user }: { user: User }) {
       <span className="eyebrow">Seu espaço</span>
       <h1>Olá, {user.username}.</h1>
       <p>Gerencie seus códigos de recuperação e proteja seu acesso.</p>
-      <a className="integration-link" href="/app/settings/integrations">Integrações · WhatsApp →</a>
+      <a className="integration-link" href="/app/settings/integrations">
+        Integrações · WhatsApp →
+      </a>
       <div className="notice">
         Se perder a senha e os códigos, não será possível recuperar o acesso.
       </div>
@@ -426,7 +437,7 @@ export function App() {
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (path === "/") return;
+    if (path === "/" || isLegalPath(path)) return;
     let active = true;
     Promise.all([currentUser(), authInfo()])
       .then(([result, info]) => {
@@ -453,6 +464,12 @@ export function App() {
     };
   }, [path]);
   if (path === "/") return <Landing />;
+  if (isLegalPath(path))
+    return (
+      <Shell legal>
+        <LegalPage path={path} />
+      </Shell>
+    );
   if (error)
     return (
       <Shell>

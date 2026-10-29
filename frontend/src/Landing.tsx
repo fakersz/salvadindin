@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LegalLinks } from "./LegalFooter";
 
 export function Landing() {
   const [theme, setTheme] = useState("system");
@@ -48,6 +49,7 @@ export function Landing() {
       </main>
       <footer className="landing-footer">
         <span>SalvaDinDin 2.0</span>
+        <LegalLinks />
         <a href="https://github.com/fakersz/salvadindin/tree/v2-development">
           Código aberto ↗
         </a>
