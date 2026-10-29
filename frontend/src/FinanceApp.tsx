@@ -26,6 +26,58 @@ const emptyFilters: Filters = {
   category_id: "",
 };
 
+function NavIcon({ name }: { name: string }) {
+  const paths: Record<string, ReactNode> = {
+    dashboard: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </>
+    ),
+    accounts: (
+      <>
+        <rect x="3" y="5" width="18" height="15" rx="3" />
+        <path d="M3 9h18M15 14h6M17 14v2" />
+      </>
+    ),
+    transactions: (
+      <>
+        <path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4" />
+      </>
+    ),
+    categories: (
+      <>
+        <path d="m12 3 9 9-9 9-9-9V3z" />
+        <circle cx="7.5" cy="7.5" r="1" />
+      </>
+    ),
+    security: (
+      <>
+        <path d="m12 3 8 3v6c0 4-5 8-8 9-3-1-8-5-8-9V6z" />
+        <path d="m8 12 3 3 5-6" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      className="nav-icon"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
 function Dialog({
   title,
   children,
@@ -156,10 +208,7 @@ function AccountForm({
           onChange={(e) => setInitial(e.target.value)}
           required
         />
-        <small>
-          Informe o saldo anterior às movimentações que você vai cadastrar. Pode
-          ser negativo.
-        </small>
+        <small>Saldo antes dos lançamentos. Pode ser negativo.</small>
       </div>
       {error && (
         <p role="alert" className="form-error">
@@ -403,10 +452,7 @@ function EntryForm({
           value={occurred}
           onChange={(e) => setOccurred(e.target.value)}
         />
-        <small>
-          Fuso deste dispositivo. Datas futuras ficam agendadas e não entram no
-          saldo atual.
-        </small>
+        <small>Horário local. Datas futuras ficam agendadas.</small>
       </div>
       {error && (
         <p role="alert" className="form-error">
@@ -533,7 +579,7 @@ export function FinanceApp({
   }
   function entryList(items: Entry[], edit = false) {
     return !items.length ? (
-      <p className="empty-state">Nenhuma movimentação neste período.</p>
+      <p className="empty-state">Sem movimentações.</p>
     ) : (
       <ul className="entry-list">
         {items.map((t) => {
@@ -588,7 +634,7 @@ export function FinanceApp({
                             kind: "confirm",
                             path: "/transactions/" + t.id,
                             message:
-                              "Excluir esta movimentação? Os saldos serão recalculados. Esta ação não pode ser desfeita.",
+                              "Excluir esta movimentação? Não é possível desfazer.",
                           })
                         }
                         aria-label={"Excluir " + t.description}
@@ -617,7 +663,6 @@ export function FinanceApp({
         <a className="brand" href="/app">
           <span aria-hidden="true">$</span>SalvaDinDin
         </a>
-        <p className="sidebar-caption">Mais clareza. Menos ruído.</p>
         <nav aria-label="Navegação financeira">
           {nav.map(([href, label, key]) => (
             <a
@@ -625,17 +670,19 @@ export function FinanceApp({
               href={href}
               aria-current={section === key ? "page" : undefined}
             >
-              {label}
+              <NavIcon name={key} />
+              <span>{label}</span>
             </a>
           ))}
         </nav>
         <a className="security-link" href="/app/security">
-          Segurança do acesso
+          <NavIcon name="security" />
+          <span>Segurança</span>
         </a>
       </aside>
       <div className="finance-workspace">
         <header className="finance-topbar">
-          <span className="user-label">{user.username}</span>
+          <span className="user-label">Olá, {user.username}</span>
           <label className="theme-label">
             Tema{" "}
             <select
@@ -661,29 +708,17 @@ export function FinanceApp({
         <main className="finance-main">
           <header className="page-heading">
             <div>
-              <span className="eyebrow">Seu dinheiro, com clareza</span>
               <h1>
                 {section === "dashboard"
-                  ? `Olá, ${user.username}.`
+                  ? "Visão geral"
                   : section === "accounts"
-                    ? "Contas e carteiras"
+                    ? "Contas"
                     : section === "transactions"
                       ? "Movimentações"
                       : section === "categories"
                         ? "Categorias"
                         : "Segurança"}
               </h1>
-              <p>
-                {section === "dashboard"
-                  ? "O que você tem hoje e como foi seu mês."
-                  : section === "accounts"
-                    ? "Cada lugar onde seu dinheiro está."
-                    : section === "transactions"
-                      ? "Receitas, despesas e transferências em um só lugar."
-                      : section === "categories"
-                        ? "Organize suas movimentações do seu jeito."
-                        : "Seu acesso, sob seu controle."}
-              </p>
             </div>
             {section === "accounts" ? (
               <button
@@ -741,7 +776,7 @@ export function FinanceApp({
               {section === "dashboard" && summary && (
                 <>
                   <div className="month-control">
-                    <label htmlFor="dashboard-month">Resumo do mês</label>
+                    <label htmlFor="dashboard-month">Mês</label>
                     <input
                       id="dashboard-month"
                       type="month"
@@ -751,10 +786,10 @@ export function FinanceApp({
                   </div>
                   <div className="metric-grid">
                     {[
-                      ["Saldo atual consolidado", summary.balance],
-                      ["Receitas do mês", summary.income],
-                      ["Despesas do mês", summary.expense],
-                      ["Resultado do mês", summary.result],
+                      ["Saldo atual", summary.balance],
+                      ["Receitas", summary.income],
+                      ["Despesas", summary.expense],
+                      ["Resultado", summary.result],
                     ].map(([label, value], i) => (
                       <article
                         className={"metric-card metric-" + i}
@@ -766,13 +801,6 @@ export function FinanceApp({
                         >
                           {money(value)}
                         </strong>
-                        <small>
-                          {i === 0
-                            ? "Inclui contas arquivadas; exclui agendamentos."
-                            : i === 3
-                              ? "Receitas menos despesas, sem transferências."
-                              : "Movimentações realizadas no mês selecionado."}
-                        </small>
                       </article>
                     ))}
                   </div>
@@ -781,12 +809,8 @@ export function FinanceApp({
                       <span aria-hidden="true" className="welcome-symbol">
                         ◎
                       </span>
-                      <h2>Comece pela sua primeira conta</h2>
-                      <p>
-                        Adicione sua conta, carteira ou dinheiro em espécie. Os
-                        números aparecem conforme você registra suas
-                        movimentações.
-                      </p>
+                      <h2>Sua primeira conta</h2>
+                      <p>Adicione uma conta para começar.</p>
                       <button
                         className="button compact"
                         onClick={() => open({ kind: "account" })}
@@ -829,7 +853,7 @@ export function FinanceApp({
                       </div>
                       <section className="panel">
                         <div className="panel-heading">
-                          <h2>Suas contas</h2>
+                          <h2>Contas</h2>
                           <a href="/app/accounts">Gerenciar contas →</a>
                         </div>
                         <ul className="balance-list">
@@ -858,7 +882,7 @@ export function FinanceApp({
                   <div className="dashboard-columns">
                     <section className="panel">
                       <div className="panel-heading">
-                        <h2>Últimas movimentações</h2>
+                        <h2>Recentes</h2>
                         <a href="/app/transactions">Ver histórico →</a>
                       </div>
                       {entryList(summary.recent_transactions)}
@@ -866,9 +890,7 @@ export function FinanceApp({
                     <section className="panel">
                       <h2>Despesas por categoria</h2>
                       {!summary.expense_by_category.length ? (
-                        <p className="empty-state">
-                          Nenhuma despesa no mês selecionado.
-                        </p>
+                        <p className="empty-state">Sem despesas neste mês.</p>
                       ) : (
                         <ul className="distribution">
                           {summary.expense_by_category.map((c) => {
@@ -900,21 +922,21 @@ export function FinanceApp({
                       )}
                     </section>
                   </div>
-                  <p className="data-note">
-                    Datas do resumo em America/Sao_Paulo. Saldo atual considera
-                    movimentações até agora; o fluxo mensal respeita o mês
-                    selecionado.
-                  </p>
+                  <details className="summary-notes">
+                    <summary>Sobre os valores</summary>
+                    <p>
+                      Saldo atual inclui contas arquivadas, sem agendamentos. O
+                      resumo usa o mês selecionado, no horário de Brasília;
+                      transferências não contam como receita ou despesa.
+                    </p>
+                  </details>
                 </>
               )}
               {section === "accounts" &&
                 (!accounts.length ? (
                   <section className="panel empty-state">
                     <h2>Nenhuma conta ainda</h2>
-                    <p>
-                      Crie sua primeira conta para registrar receitas e
-                      despesas.
-                    </p>
+                    <p>Adicione uma conta para começar.</p>
                   </section>
                 ) : (
                   <div className="account-grid">
@@ -956,7 +978,7 @@ export function FinanceApp({
                                   kind: "confirm",
                                   path: "/accounts/" + a.id,
                                   message:
-                                    "Arquivar esta conta? O saldo e o histórico serão preservados. Novas movimentações ficam bloqueadas até a reativação.",
+                                    "Arquivar conta? O histórico será mantido e novos lançamentos bloqueados.",
                                 })
                               }
                             >
@@ -1006,7 +1028,7 @@ export function FinanceApp({
                                 kind: "confirm",
                                 path: "/categories/" + c.id,
                                 message:
-                                  "Excluir esta categoria? Categorias usadas em movimentações não podem ser excluídas.",
+                                  "Excluir categoria? Categorias em uso não podem ser excluídas.",
                               })
                             }
                             aria-label={"Excluir categoria " + c.name}
@@ -1140,9 +1162,6 @@ export function FinanceApp({
             </>
           )}
         </main>
-        <footer className="finance-footer">
-          SalvaDinDin · Clareza para o seu dinheiro.
-        </footer>
       </div>
       {modal && (
         <Dialog

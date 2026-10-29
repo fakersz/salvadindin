@@ -18,7 +18,7 @@ let step = 'browser launch'
     step = 'protected route'
     await page.goto(base + '/app')
     await page.waitForURL('**/login')
-    assert.equal(await page.locator('h1').innerText(), 'Bom ter você por aqui')
+    assert.equal(await page.locator('h1').innerText(), 'Entrar')
     step = 'registration'
     await page.goto(base + '/register')
     await page.locator('#username').fill(username)
@@ -35,7 +35,7 @@ let step = 'browser launch'
     await page.getByRole('checkbox').check()
     await page.getByRole('button', { name: 'Continuar', exact: true }).click()
     await page.waitForURL('**/app')
-    await page.getByRole('heading', { name: `Olá, ${username}.` }).waitFor()
+    await page.getByRole('heading', { name: 'Visão geral', exact: true }).waitFor()
     step = 'cookie and layout'
     const sessionCookie = (await context.cookies()).find(c => c.name === '__Host-salvadindin_session')
     assert(sessionCookie.httpOnly && sessionCookie.secure && sessionCookie.sameSite === 'Lax')
@@ -77,7 +77,7 @@ let step = 'browser launch'
     await page.locator('#password').fill(nextPassword)
     await page.getByRole('button', { name: 'Entrar', exact: true }).click()
     await page.waitForURL('**/app')
-    await page.getByRole('heading', { name: `Olá, ${username}.` }).waitFor()
+    await page.getByRole('heading', { name: 'Visão geral', exact: true }).waitFor()
     step = 'desktop and final logout'
     await page.setViewportSize({ width: 1280, height: 900 })
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)

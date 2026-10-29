@@ -36,7 +36,7 @@ let step = 'launch'
     }
     step = 'empty dashboard and account'
     await page.goto(base + '/app')
-    await page.getByRole('heading', { name: 'Comece pela sua primeira conta' }).waitFor()
+    await page.getByRole('heading', { name: 'Sua primeira conta' }).waitFor()
     await page.getByRole('button', { name: 'Criar primeira conta' }).click()
     await newAccount('Conta principal', '100,00')
     await go('Contas')
