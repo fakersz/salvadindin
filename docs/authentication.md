@@ -41,7 +41,7 @@ ou criação de sessão com senha antiga após reset. A aplicação não toca ou
 
 Usernames aceitam de 3 a 30 letras ASCII, números, ponto, hífen e underscore,
 com espaços externos removidos e lowercase consistente. Senhas mantêm espaços e
-caracteres especiais: 12 a 128 caracteres Unicode, sem truncamento. Login aceita
+caracteres especiais: 8 a 128 caracteres Unicode, sem truncamento. Login aceita
 senhas menores apenas para responder erro genérico, sem revelar existência da conta.
 
 Argon2id: 32 MiB, 3 iterações, paralelismo 1; máximo de duas operações simultâneas

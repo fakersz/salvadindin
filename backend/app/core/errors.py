@@ -51,7 +51,7 @@ def register_error_handlers(app: FastAPI) -> None:
                     "Usuário: use de 3 a 30 letras ASCII, números, ponto, hífen ou underscore."
                 )
             elif any("password" in f for f in fields):
-                message = "Senha: use de 12 a 128 caracteres e confirme a mesma senha."
+                message = "Senha: use de 8 a 128 caracteres e confirme a mesma senha."
             else:
                 message = "Confira os campos e a confirmação da senha."
         return error_response(422, "validation_error", message)

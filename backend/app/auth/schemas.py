@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-Password = Annotated[str, Field(strict=True, min_length=12, max_length=128)]
+Password = Annotated[str, Field(strict=True, min_length=8, max_length=128)]
 
 
 class Credentials(BaseModel):

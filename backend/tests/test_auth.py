@@ -105,7 +105,7 @@ def test_invalid_username(auth, username):
     assert register(auth[0], username).status_code == 422
 
 
-@pytest.mark.parametrize("password", ["short", "a" * 129])
+@pytest.mark.parametrize("password", ["short", "a" * 7, "a" * 129])
 def test_invalid_password(auth, password):
     assert register(auth[0], password=password).status_code == 422
 
@@ -403,4 +403,32 @@ def test_no_origin_and_form_content_type_rejected(auth):
             headers={"Origin": ORIGIN, "X-CSRF-Token": token, "Content-Type": "text/plain"},
         ).status_code
         == 403
+    )
+
+
+def test_eight_character_password_registration_login_and_reset(auth):
+    client, _, _ = auth
+    original = "Only8!ok"
+    replacement = "New8!key"
+    result = register(client, password=original)
+    assert result.status_code == 201
+    code = result.json()["recovery_codes"][0]
+    assert post(client, "logout", {}).status_code == 204
+    assert post(client, "login", {"username": "test.user", "password": original}).status_code == 200
+    assert (
+        post(
+            client,
+            "recover",
+            {
+                "username": "test.user",
+                "recovery_code": code,
+                "password": replacement,
+                "password_confirmation": replacement,
+            },
+        ).status_code
+        == 200
+    )
+    assert client.get("/api/auth/me").status_code == 401
+    assert (
+        post(client, "login", {"username": "test.user", "password": replacement}).status_code == 200
     )

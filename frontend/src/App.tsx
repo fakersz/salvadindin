@@ -77,7 +77,7 @@ function AuthForm({ mode, registrationEnabled }: { mode: Mode; registrationEnabl
   const title = registering ? 'Crie seu acesso' : recovering ? 'Recupere seu acesso' : 'Bom ter você por aqui'
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setMessage('')
-    if (Array.from(password).length > 128 || (mode !== 'login' && Array.from(password).length < 12)) { setError('Senha: use de 12 a 128 caracteres.'); return }
+    if (Array.from(password).length > 128 || (mode !== 'login' && Array.from(password).length < 8)) { setError('Senha: use de 8 a 128 caracteres.'); return }
     if (mode !== 'login' && password !== confirmation) { setError('As senhas precisam ser iguais.'); return }
     setBusy(true)
     try {
@@ -106,7 +106,7 @@ function AuthForm({ mode, registrationEnabled }: { mode: Mode; registrationEnabl
       {recovering && <div className="field"><label htmlFor="recovery-code">Código de recuperação</label><input id="recovery-code" value={recoveryCode} onChange={e => setRecoveryCode(e.target.value)} autoComplete="off" spellCheck={false} maxLength={80} required /></div>}
       <PasswordField value={password} onChange={setPassword} login={mode === 'login'} />
       {mode !== 'login' && <><PasswordField id="password_confirmation" value={confirmation} onChange={setConfirmation} confirmation />
-        <ul className="requirements" aria-label="Requisitos da senha"><li data-met={Array.from(password).length >= 12 && Array.from(password).length <= 128}>{Array.from(password).length >= 12 && Array.from(password).length <= 128 ? '✓' : '○'} Entre 12 e 128 caracteres</li><li data-met={!!confirmation && confirmation === password}>{confirmation && confirmation === password ? '✓' : '○'} Senhas iguais</li><li>Espaços e caracteres especiais são bem-vindos.</li></ul></>}
+        <ul className="requirements" aria-label="Requisitos da senha"><li data-met={Array.from(password).length >= 8 && Array.from(password).length <= 128}>{Array.from(password).length >= 8 && Array.from(password).length <= 128 ? '✓' : '○'} Entre 8 e 128 caracteres</li><li data-met={!!confirmation && confirmation === password}>{confirmation && confirmation === password ? '✓' : '○'} Senhas iguais</li><li>Espaços e caracteres especiais são bem-vindos.</li></ul></>}
       {error && <p className="form-error" role="alert">{error}</p>}
       {message && <p className="notice" role="status">{message} <a href="/login">Ir para entrar</a></p>}
       <button className="button" type="submit" disabled={busy}>{busy ? 'Aguarde…' : registering ? 'Criar conta' : recovering ? 'Redefinir senha' : 'Entrar'}</button>
