@@ -100,10 +100,20 @@ O fluxo de melhorias do bot foi preservado separadamente e não integra esta pub
 
 ## Estado desta entrega
 
-As três páginas foram implementadas e verificadas localmente, inclusive como HTML
-sem JavaScript e no Nginx da imagem final. O responsável autorizado é Jean Peixoto.
-O canal privado de contato ainda não foi informado pelo responsável e, por isso,
-a publicação em produção aguarda esse dado e a verificação possível de operação.
-O campo público fica em `frontend/src/legalContact.ts`; não preencher com exemplo,
-endereço inferido ou credenciais. Após o preenchimento real, refazer o build e
-atualizar somente o frontend, validando as três URLs HTTPS sem login.
+Responsável informado e autorizado para publicação: Jean Peixoto.
+Canal privado de contato informado pelo responsável: devjeanpeixoto@gmail.com.
+O domínio Gmail possui servidores MX válidos. A verificação de DNS não prova,
+isoladamente, a existência ou o recebimento desta caixa específica. Nenhuma
+mensagem de teste foi enviada automaticamente. Acompanhar a caixa e confirmar
+um recebimento real antes de declarar o atendimento operacional de ponta a ponta.
+
+As páginas possuem HTML pré-renderizado, não dependem de login/API e têm rodapé
+com os três links. Atualizar somente o frontend e conferir as três URLs por HTTPS.
+A licença específica do código continua em definição. O procedimento administrativo
+acima está documentado; não foi executada exclusão de dados de produção.
+
+Publicação verificada em 29/10/2026: `/privacidade`, `/termos` e
+`/exclusao-de-dados` retornaram HTTP 200 direto por HTTPS, em duas requisições
+independentes, com texto, identidade autorizada, mailto correto e rodapé presentes
+no HTML sem autenticação. Somente o frontend foi recriado e ficou saudável;
+backend, ambiente privado e configurações Anninha15 foram preservados.
