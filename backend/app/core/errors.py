@@ -54,6 +54,10 @@ def register_error_handlers(app: FastAPI) -> None:
                 message = "Senha: use de 8 a 128 caracteres e confirme a mesma senha."
             else:
                 message = "Confira os campos e a confirmação da senha."
+        elif request.url.path.startswith(
+            ("/api/accounts", "/api/categories", "/api/transactions", "/api/dashboard")
+        ):
+            message = "Confira os campos: valores com até duas casas decimais, nomes preenchidos e data com fuso horário."
         return error_response(422, "validation_error", message)
 
     @app.exception_handler(Exception)

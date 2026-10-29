@@ -1,0 +1,112 @@
+const assert = require('node:assert/strict')
+const { randomBytes } = require('node:crypto')
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
+const base = process.env.AUTH_E2E_URL || 'https://localhost:15443'
+assert(['localhost', '127.0.0.1'].includes(new URL(base).hostname), 'Disposable loopback target only')
+let step = 'launch'
+;(async () => {
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH })
+  try {
+    const context = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1280, height: 900 } })
+    const csrf = await (await context.request.get(base + '/api/auth/csrf')).json()
+    const password = randomBytes(24).toString('base64url')
+    const response = await context.request.post(base + '/api/auth/register', {
+      headers: { Origin: base, 'X-CSRF-Token': csrf.csrf_token },
+      data: { username: 'finance.' + randomBytes(5).toString('hex'), password, password_confirmation: password },
+    })
+    assert.equal(response.status(), 201)
+    const page = await context.newPage()
+    const errors = []
+    page.on('pageerror', e => errors.push(e.name))
+    const nav = () => page.getByRole('navigation', { name: 'Navegação financeira' })
+    async function saved() { await page.getByRole('dialog').waitFor({ state: 'hidden' }); await page.getByRole('status').filter({ hasText: 'Alteração salva.' }).waitFor() }
+    async function go(label) { await nav().getByRole('link', { name: label, exact: true }).click(); await page.getByRole('heading', { level: 1 }).waitFor(); await page.getByRole('status').filter({ hasText: 'Atualizando' }).waitFor({ state: 'hidden' }) }
+    async function newAccount(name, initial) {
+      await page.locator('#account-name').fill(name)
+      await page.locator('#initial-balance').fill(initial)
+      await page.getByRole('button', { name: 'Salvar conta', exact: true }).click(); await saved()
+    }
+    async function newEntry(type, name, amount, description, destination) {
+      await page.locator('#entry-type').selectOption(type)
+      await page.locator('#entry-account').selectOption({ label: name })
+      if (destination) await page.locator('#entry-destination').selectOption({ label: destination })
+      await page.locator('#entry-amount').fill(amount)
+      await page.locator('#entry-description').fill(description)
+      await page.getByRole('button', { name: 'Salvar movimentação', exact: true }).click(); await saved()
+    }
+    step = 'empty dashboard and account'
+    await page.goto(base + '/app')
+    await page.getByRole('heading', { name: 'Comece pela sua primeira conta' }).waitFor()
+    await page.getByRole('button', { name: 'Criar primeira conta' }).click()
+    await newAccount('Conta principal', '100,00')
+    await go('Contas')
+    await page.getByRole('button', { name: 'Nova conta', exact: true }).click()
+    await newAccount('Carteira', '0,00')
+    step = 'income expense transfer'
+    await go('Visão geral')
+    await page.getByRole('button', { name: '+ Receita', exact: true }).click()
+    await newEntry('income', 'Conta principal', '250,10', 'Receita isolada')
+    await page.getByRole('button', { name: '− Despesa', exact: true }).click()
+    await newEntry('expense', 'Conta principal', '50,00', 'Despesa isolada')
+    await page.getByRole('button', { name: '⇄ Transferir', exact: true }).click()
+    await newEntry('transfer', 'Conta principal', '30,00', 'Transferência isolada', 'Carteira')
+    assert.equal(await page.locator('.metric-0 > strong').innerText(), 'R$ 300,10')
+    assert.equal(await page.locator('.metric-1 > strong').innerText(), 'R$ 250,10')
+    assert.equal(await page.locator('.metric-2 > strong').innerText(), 'R$ 50,00')
+    step = 'edit delete and filters'
+    await go('Movimentações')
+    await page.getByRole('button', { name: 'Editar Receita isolada', exact: true }).click()
+    await page.locator('#entry-amount').fill('200,10')
+    await page.getByRole('button', { name: 'Salvar movimentação', exact: true }).click(); await saved()
+    await page.getByRole('button', { name: 'Excluir Despesa isolada', exact: true }).click()
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click()
+    assert(await page.getByRole('button', { name: 'Excluir Despesa isolada', exact: true }).isVisible())
+    await page.getByRole('button', { name: 'Excluir Despesa isolada', exact: true }).click()
+    await page.getByRole('button', { name: 'Confirmar', exact: true }).click(); await saved()
+    await page.locator('#filter-type').selectOption('transfer')
+    await page.getByRole('status').filter({ hasText: 'Atualizando' }).waitFor({ state: 'hidden' })
+    assert.equal(await page.locator('.entry-row').count(), 1)
+    await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click()
+    step = 'custom categories'
+    await go('Categorias')
+    await page.getByRole('button', { name: 'Nova categoria', exact: true }).click()
+    await page.locator('#category-name').fill('Categoria isolada')
+    await page.locator('#category-icon').fill('★')
+    await page.getByRole('button', { name: 'Salvar categoria', exact: true }).click(); await saved()
+    await page.getByRole('button', { name: 'Editar categoria Categoria isolada', exact: true }).click()
+    await page.locator('#category-name').fill('Categoria editada')
+    await page.getByRole('button', { name: 'Salvar categoria', exact: true }).click(); await saved()
+    await page.getByRole('button', { name: 'Excluir categoria Categoria editada', exact: true }).click()
+    await page.getByRole('button', { name: 'Confirmar', exact: true }).click(); await saved()
+    step = 'archive reactivate negative balance'
+    await go('Contas')
+    let card = page.locator('.account-card').filter({ has: page.getByRole('heading', { name: 'Carteira', exact: true }) })
+    assert.equal(await card.locator('.account-balance').innerText(), 'R$ 30,00')
+    await card.getByRole('button', { name: 'Arquivar', exact: true }).click()
+    await page.getByRole('button', { name: 'Confirmar', exact: true }).click(); await saved()
+    await card.getByRole('button', { name: 'Reativar', exact: true }).click()
+    await page.getByRole('status').filter({ hasText: 'Alteração salva.' }).waitFor()
+    await go('Visão geral')
+    await page.getByRole('button', { name: '− Despesa', exact: true }).click()
+    await newEntry('expense', 'Carteira', '40,00', 'Saldo negativo isolado')
+    await go('Contas')
+    card = page.locator('.account-card').filter({ has: page.getByRole('heading', { name: 'Carteira', exact: true }) })
+    assert.equal(await card.locator('.account-balance').innerText(), '−R$ 10,00')
+    assert(await card.getByText('Atenção: saldo negativo.').isVisible())
+    step = 'large decimal and responsive layout'
+    await page.getByRole('button', { name: 'Nova conta', exact: true }).click()
+    await newAccount('Precisão decimal', '9.999.999.999.999.999,99')
+    const large = page.locator('.account-card').filter({ has: page.getByRole('heading', { name: 'Precisão decimal', exact: true }) })
+    assert.equal(await large.locator('.account-balance').innerText(), 'R$ 9.999.999.999.999.999,99')
+    await page.setViewportSize({ width: 390, height: 844 })
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    await go('Visão geral')
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    await page.locator('.theme-label select').selectOption('dark')
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark')
+    assert.deepEqual(errors, [])
+    await page.getByRole('button', { name: 'Sair', exact: true }).click()
+    await page.waitForURL('**/login')
+    console.log('PASS: isolated browser financial flow: accounts, income, expense, atomic transfer, edit, confirmed deletion, categories, filters, archive/reactivation, negative balance, decimal precision, responsive dashboard and logout. No financial records or credentials logged.')
+  } finally { await browser.close() }
+})().catch(e => { console.error('FAIL isolated finance browser at ' + step + ': ' + e.name); console.error((e.stack || '').split('\n').filter(x => x.trim().startsWith('at ')).join('\n')); process.exitCode = 1 })

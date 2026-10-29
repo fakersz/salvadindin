@@ -50,6 +50,7 @@ let step = 'browser launch'
     await page.getByRole('button', { name: 'Entrar', exact: true }).click()
     await page.waitForURL('**/app')
     step = 'regeneration'
+    await page.goto(base + '/app/security')
     await page.locator('summary').click()
     await page.locator('#password').fill(password)
     await page.getByRole('button', { name: 'Gerar novos códigos', exact: true }).click()

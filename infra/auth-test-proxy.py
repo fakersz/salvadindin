@@ -70,6 +70,8 @@ class Handler(BaseHTTPRequestHandler):
 
     do_GET = handle_request
     do_POST = handle_request
+    do_PATCH = handle_request
+    do_DELETE = handle_request
 
 
 if __name__ == "__main__":

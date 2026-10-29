@@ -52,7 +52,7 @@ export function Landing() {
           ].map(([title, text]) => <div key={title}><h2 className="font-medium">{title}</h2><p className="mt-2 text-sm leading-relaxed text-muted">{text}</p></div>)}
         </div>
       </main>
-      <footer className="mx-auto w-full max-w-5xl px-6 py-6 text-sm text-muted">Em desenvolvimento · Sem cadastro ou funcionalidades financeiras nesta etapa.</footer>
+      <footer className="mx-auto w-full max-w-5xl px-6 py-6 text-sm text-muted">Em evolução · Cadastro e organização financeira gratuitos.</footer>
     </div>
   )
 }

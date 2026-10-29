@@ -125,6 +125,9 @@ def register(data: Registration, request: Request, response: Response, db: Datab
         raise AppError(
             409, "username_unavailable", "Este nome de usuário não está disponível."
         ) from None
+    from app.finance.defaults import seed_categories
+
+    seed_categories(db, user.id)
     codes = new_codes(db, user)
     new_session(db, user, response, request)
     result = {"user": public_user(user), "recovery_codes": codes}

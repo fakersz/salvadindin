@@ -1,56 +1,17 @@
-import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, delete, func, select
-from sqlalchemy.engine import make_url
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.auth.models import LoginSession, RecoveryCode, User
 from app.auth.security import SESSION_COOKIE, now, token_hash
 from app.core.config import get_settings
-from app.db.base import Base
-from app.db.session import get_session
-from app.main import create_app
 
 PASSWORD = "Test-only long password! ç🔒"
 ORIGIN = "https://testserver"
-
-
-@pytest.fixture(scope="module")
-def engine():
-    url = os.environ.get("TEST_DATABASE_URL")
-    if not url:
-        pytest.skip("Requires disposable PostgreSQL via Dockerfile.test")
-    assert make_url(url).database == "salvadindin_auth_test"
-    engine = create_engine(url, pool_size=5)
-    with engine.connect() as connection:
-        assert connection.scalar(select(func.current_database())) == "salvadindin_auth_test"
-    yield engine
-    engine.dispose()
-
-
-@pytest.fixture
-def auth(engine, monkeypatch):
-    monkeypatch.setenv("PUBLIC_REGISTRATION_ENABLED", "true")
-    monkeypatch.setenv("AUTH_ALLOWED_ORIGINS", '["https://testserver"]')
-    with Session(engine) as session:
-        for table in reversed(Base.metadata.sorted_tables):
-            session.execute(delete(table))
-        session.commit()
-    get_settings.cache_clear()
-    app = create_app()
-
-    def database():
-        with Session(engine) as session:
-            yield session
-
-    app.dependency_overrides[get_session] = database
-    with TestClient(app, base_url=ORIGIN) as client:
-        yield client, engine, app
-    get_settings.cache_clear()
 
 
 def post(client, path, data, **kwargs):

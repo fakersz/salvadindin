@@ -4,6 +4,7 @@ from app.auth import models  # noqa: F401
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import get_engine
+from app.finance import models as finance_models  # noqa: F401
 
 # Register auth models for migrations.
 target_metadata = Base.metadata

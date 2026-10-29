@@ -22,7 +22,8 @@ As credenciais ficam em arquivo root-only fora do repositório.
 - `backend/app/core`: configuração tipada e envelope de erros.
 - `backend/app/db`: SQLAlchemy 2, engine com pool_pre_ping e pool limitado.
 - `backend/app/auth`: contas, sessões, CSRF, limites persistentes e recuperação.
-- `backend/migrations`: Alembic; revisão `0001_auth` para as quatro tabelas de acesso.
+- `backend/migrations`: Alembic; revisões `0001_auth` e `0002_finance` para acesso e núcleo financeiro.
+- `backend/app/finance`: contas, categorias, movimentações e resumo com escopo por usuário.
 - `frontend/src`: React, Tailwind 4 e temas sistema/claro/escuro.
 - `infra`: configuração de implantação e orientações operacionais.
 
@@ -41,8 +42,8 @@ nenhuma criação de tabelas ocorre no startup. A revisão de autenticação é 
 timezone, constraints e índices. Tokens de sessão e códigos só persistem como
 hashes. A dependência `require_auth` deve proteger as futuras rotas financeiras.
 
-A autenticação já está implementada; as próximas etapas de produto são as
-entidades financeiras. O cadastro público é controlado por variável de ambiente.
+Autenticação e núcleo financeiro estão implementados. Saldos derivados e
+transferências com origem/destino são descritos em [finance.md](finance.md). O cadastro público é controlado por variável de ambiente.
 CI, monitoramento, backups recorrentes, restauração comprovada e revisão de
 segurança/privacidade continuam pendentes. Não há declaração de conformidade
 LGPD nem licença open source escolhida.

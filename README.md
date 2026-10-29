@@ -3,8 +3,9 @@
 Assistente financeiro pessoal gratuito e minimalista, desenvolvido em aberto.
 A fundação está publicada em **https://salvadindin.online** e
 **https://www.salvadindin.online**. Cadastro, login, sessões e recuperação por
-códigos estão implementados. O cadastro público começa desativado por variável
-de ambiente. Ainda não há dashboard ou funcionalidades financeiras.
+códigos estão implementados. O cadastro público é controlado por variável
+de ambiente e está habilitado na implantação atual. O núcleo financeiro já inclui dashboard, contas, categorias e
+movimentações, com saldos calculados e valores exatos.
 
 O desenvolvimento acontece em `v2-development`; `main` e `legacy-v1` permanecem
 preservadas. A licença open source ainda está em definição.
@@ -113,6 +114,19 @@ Nunca inclua credenciais ou códigos em comandos de terminal, logs ou Git.
 
 Veja [autenticação e testes isolados](docs/authentication.md).
 
+## Núcleo financeiro
+
+Em `/app`, o usuário autenticado cria suas contas e registra receitas, despesas e
+transferências. `/app/accounts`, `/app/transactions` e `/app/categories` permitem
+gerenciar contas, histórico e categorias. `/app/security` mantém os controles de
+acesso e recuperação. Não há dados financeiros de demonstração em produção.
+
+Saldos são calculados pelo backend. Transferências são um registro lógico com
+origem/destino, sem contar como receita/despesa; contas arquivadas preservam histórico.
+O resumo mensal usa America/Sao_Paulo e distingue saldo atual de fluxo do mês.
+Dinheiro usa Decimal/NUMERIC e strings, inclusive na interface, sem float.
+Veja [regras, API e testes financeiros](docs/finance.md).
+
 ## Migrações e API
 
 `/api/health` verifica o processo; `/api/health/ready` executa `SELECT 1`.
@@ -122,6 +136,7 @@ A API não cria tabelas automaticamente ao iniciar.
 A revisão `0001_auth` cria users, sessions, recovery_codes e auth_rate_limits.
 Migrações são aplicadas exclusivamente no banco SalvaDinDin; os testes usam
 outra instância PostgreSQL descartável, sem acesso ao cluster do host.
+A revisão `0002_finance` adiciona financial_accounts, categories e transactions.
 Mudanças futuras de modelo exigem revisão explícita antes de `upgrade head`.
 
 HTTPS usa Let's Encrypt com renovação pelo timer Certbot e hook exclusivo que

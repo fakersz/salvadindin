@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from 'react'
 import { authInfo, currentUser, mutate } from './api'
 import type { AuthResult, User } from './api'
 import { Landing } from './Landing'
+import { FinanceApp } from './FinanceApp'
 
 type Mode = 'login' | 'register' | 'recover'
 
@@ -135,8 +136,8 @@ function PrivateApp({ user }: { user: User }) {
   }
   if (codes) return <RecoveryCodes codes={codes} onDone={() => setCodes(null)} />
   return <section className="auth-card app-card"><span className="eyebrow">Seu espaço</span><h1>Olá, {user.username}.</h1>
-    <p>Seu acesso está pronto. A organização das suas finanças vem nos próximos passos.</p>
-    <div className="notice">Nenhuma informação financeira é solicitada nesta etapa.</div>
+    <p>Gerencie seus códigos de recuperação e proteja seu acesso.</p>
+    <div className="notice">Se perder a senha e os códigos, não será possível recuperar o acesso.</div>
     <button className="button secondary" disabled={busy} onClick={logout}>Sair</button>
     <details className="security-panel"><summary>Segurança e códigos de recuperação</summary><p>Perdeu seus códigos? Confirme sua senha para gerar outros. Todos os códigos anteriores serão invalidados.</p>
       <form onSubmit={regenerate} aria-busy={busy}><PasswordField value={password} onChange={setPassword} login /><button className="button" disabled={busy}>{busy ? 'Aguarde…' : 'Gerar novos códigos'}</button></form>
@@ -154,7 +155,7 @@ export function App() {
     let active = true
     Promise.all([currentUser(), authInfo()]).then(([result, info]) => {
       if (!active) return
-      if (path === '/app' && !result) { window.location.replace('/login'); return }
+      if (path.startsWith('/app') && !result) { window.location.replace('/login'); return }
       if ((path === '/login' || path === '/register') && result) { window.location.replace('/app'); return }
       setUser(result); setRegistrationEnabled(info.registration_enabled)
     }).catch(e => { if (active) setError(e instanceof Error ? e.message : 'Não foi possível conectar.') })
@@ -163,7 +164,7 @@ export function App() {
   if (path === '/') return <Landing />
   if (error) return <Shell><section className="auth-card"><h1>Vamos tentar de novo?</h1><p role="alert">{error}</p><button className="button" onClick={() => window.location.reload()}>Tentar novamente</button></section></Shell>
   if (user === undefined) return <Shell><p role="status" className="loading">Verificando seu acesso…</p></Shell>
-  if (path === '/app' && user) return <Shell user={user}><PrivateApp user={user} /></Shell>
+  if (path.startsWith('/app') && user) return <FinanceApp user={user} security={<PrivateApp user={user} />} />
   if (path === '/login' || path === '/register' || path === '/recover') return <Shell><AuthForm mode={path.slice(1) as Mode} registrationEnabled={registrationEnabled} /></Shell>
   return <Shell><section className="auth-card"><h1>Página não encontrada</h1><a href="/">Voltar ao início</a></section></Shell>
 }
