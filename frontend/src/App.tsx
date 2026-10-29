@@ -6,6 +6,7 @@ import { Landing } from "./Landing";
 import { FinanceApp } from "./FinanceApp";
 import { isLegalPath, LegalPage } from "./LegalPage";
 import { LegalFooter } from "./LegalFooter";
+import { applyTheme, preferredTheme } from "./theme";
 
 type Mode = "login" | "register" | "recover";
 
@@ -16,11 +17,10 @@ export function Shell({
   children: ReactNode;
   legal?: boolean;
 }) {
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = useState(preferredTheme);
   function changeTheme(value: string) {
     setTheme(value);
-    if (value === "system") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = value;
+    applyTheme(value);
   }
   return (
     <div className={"auth-shell" + (legal ? " legal-shell" : "")}>
@@ -360,22 +360,11 @@ function AuthForm({
   );
 }
 
-function PrivateApp({ user }: { user: User }) {
+function PrivateApp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [codes, setCodes] = useState<string[] | null>(null);
-  async function logout() {
-    setBusy(true);
-    setError("");
-    try {
-      await mutate("logout", {});
-      window.location.replace("/login");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Tente novamente.");
-      setBusy(false);
-    }
-  }
   async function regenerate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -396,19 +385,9 @@ function PrivateApp({ user }: { user: User }) {
   if (codes)
     return <RecoveryCodes codes={codes} onDone={() => setCodes(null)} />;
   return (
-    <section className="auth-card app-card">
-      <span className="eyebrow">Seu espaço</span>
-      <h1>Olá, {user.username}.</h1>
-      <p>Gerencie seus códigos de recuperação e proteja seu acesso.</p>
-      <a className="integration-link" href="/app/settings/integrations">
-        Integrações · WhatsApp →
-      </a>
-      <div className="notice">
-        Se perder a senha e os códigos, não será possível recuperar o acesso.
-      </div>
-      <button className="button secondary" disabled={busy} onClick={logout}>
-        Sair
-      </button>
+    <section className="panel settings-security" aria-labelledby="security-heading">
+      <h2 id="security-heading">Segurança da conta</h2>
+      <div className="notice">Guarde seus códigos de recuperação. Sem a senha e os códigos, você pode perder o acesso.</div>
       <details className="security-panel">
         <summary>Segurança e códigos de recuperação</summary>
         <p>
@@ -491,7 +470,7 @@ export function App() {
       </Shell>
     );
   if (path.startsWith("/app") && user)
-    return <FinanceApp user={user} security={<PrivateApp user={user} />} />;
+    return <FinanceApp user={user} security={<PrivateApp />} />;
   if (path === "/login" || path === "/register" || path === "/recover")
     return (
       <Shell>

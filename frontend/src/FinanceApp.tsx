@@ -3,7 +3,7 @@ import type { FormEvent, ReactNode } from "react";
 import type { User } from "./api";
 import { mutate } from "./api";
 import { Integrations } from "./Integrations";
-import { LegalFooter } from "./LegalFooter";
+import { applyTheme, preferredTheme } from "./theme";
 import { accountTypes, finance, kinds, money, parseMoney } from "./financeApi";
 import type { Account, Category, Entry, Summary } from "./financeApi";
 
@@ -55,12 +55,7 @@ function NavIcon({ name }: { name: string }) {
         <circle cx="7.5" cy="7.5" r="1" />
       </>
     ),
-    security: (
-      <>
-        <path d="m12 3 8 3v6c0 4-5 8-8 9-3-1-8-5-8-9V6z" />
-        <path d="m8 12 3 3 5-6" />
-      </>
-    ),
+    settings: (<><path d="M9.5 3h5l.7 2.8 2.4 1.4 2.8-.8 2.5 4.3-2.1 2v2.6l2.1 2-2.5 4.3-2.8-.8-2.4 1.4-.7 2.8h-5l-.7-2.8-2.4-1.4-2.8.8L1.1 17l2.1-2v-2.6l-2.1-2 2.5-4.3 2.8.8 2.4-1.4z" transform="translate(2 0) scale(.83)" /><circle cx="12" cy="11.5" r="3" /></>),
   };
   return (
     <svg
@@ -476,18 +471,9 @@ export function FinanceApp({
   security: ReactNode;
 }) {
   const path = window.location.pathname.replace(/\/$/, "");
-  const section =
-    path === "/app/settings/integrations"
-      ? "integrations"
-      : path === "/app/accounts"
-        ? "accounts"
-        : path === "/app/transactions"
-          ? "transactions"
-          : path === "/app/categories"
-            ? "categories"
-            : path === "/app/security"
-              ? "security"
-              : "dashboard";
+  const section = ["/app/settings", "/app/settings/integrations", "/app/security"].includes(path)
+      ? "settings" : path === "/app/accounts" ? "accounts" : path === "/app/transactions" ? "transactions"
+      : path === "/app/categories" ? "categories" : "dashboard";
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -501,7 +487,7 @@ export function FinanceApp({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = useState(preferredTheme);
   const sequence = useRef(0);
   const load = useCallback(async () => {
     const number = ++sequence.current;
@@ -660,7 +646,7 @@ export function FinanceApp({
     ["/app/accounts", "Contas", "accounts"],
     ["/app/transactions", "Movimentações", "transactions"],
     ["/app/categories", "Categorias", "categories"],
-    ["/app/security", "Segurança", "security"],
+    ["/app/settings", "Configurações", "settings"],
   ];
   return (
     <div className="finance-shell">
@@ -674,13 +660,8 @@ export function FinanceApp({
               key={href}
               href={href}
               aria-label={label}
-              className={key === "security" ? "security-link" : undefined}
-              aria-current={
-                section === key ||
-                (section === "integrations" && key === "security")
-                  ? "page"
-                  : undefined
-              }
+              className={key === "settings" ? "security-link" : undefined}
+              aria-current={section === key ? "page" : undefined}
             >
               <NavIcon name={key} />
               <span className="nav-label-wide">{label}</span>
@@ -689,36 +670,16 @@ export function FinanceApp({
                   ? "Início"
                   : key === "transactions"
                     ? "Extrato"
-                    : label}
+                    : key === "settings" ? "Config." : label}
               </span>
             </a>
           ))}
         </nav>
+        <button className="sidebar-logout" onClick={logout} disabled={busy}>Sair</button>
       </aside>
       <div className="finance-workspace">
         <header className="finance-topbar">
           <span className="user-label">Olá, {user.username}</span>
-          <label className="theme-label">
-            Tema{" "}
-            <select
-              value={theme}
-              onChange={(e) => {
-                setTheme(e.target.value);
-                if (e.target.value === "system")
-                  delete document.documentElement.dataset.theme;
-                else document.documentElement.dataset.theme = e.target.value;
-              }}
-            >
-              <option value="system">Sistema</option>
-              <option value="light">Claro</option>
-              <option value="dark">Escuro</option>
-            </select>
-          </label>
-          {section !== "security" && (
-            <button className="text-button" onClick={logout} disabled={busy}>
-              Sair
-            </button>
-          )}
         </header>
         <main className="finance-main">
           <header className="page-heading">
@@ -732,9 +693,7 @@ export function FinanceApp({
                       ? "Movimentações"
                       : section === "categories"
                         ? "Categorias"
-                        : section === "integrations"
-                          ? "Integrações"
-                          : "Segurança"}
+                        : "Configurações"}
               </h1>
             </div>
             {section === "accounts" ? (
@@ -752,8 +711,7 @@ export function FinanceApp({
                 Nova categoria
               </button>
             ) : (
-              section !== "security" &&
-              section !== "integrations" && (
+              section !== "settings" && (
                 <button
                   className="button compact"
                   disabled={!accounts.some((a) => a.is_active)}
@@ -783,10 +741,19 @@ export function FinanceApp({
               </button>
             </div>
           )}
-          {section === "integrations" ? (
-            <Integrations />
-          ) : section === "security" ? (
-            security
+          {section === "settings" ? (
+            <div className="settings-panels">
+              <Integrations />
+              <section className="panel settings-appearance" aria-labelledby="appearance-heading">
+                <h2 id="appearance-heading">Aparência</h2>
+                <label className="theme-label">Tema
+                  <select value={theme} onChange={(e) => {setTheme(e.target.value); applyTheme(e.target.value);}}>
+                    <option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Escuro</option>
+                  </select>
+                </label>
+              </section>
+              {security}
+            </div>
           ) : loading ? (
             <p role="status" className="empty-state">
               Atualizando seus dados…
@@ -1182,7 +1149,6 @@ export function FinanceApp({
             </>
           )}
         </main>
-        <LegalFooter />
       </div>
       {modal && (
         <Dialog

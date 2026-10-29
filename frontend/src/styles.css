@@ -416,3 +416,16 @@ a, button, select { outline-offset: 4px; }
   .legal-layout { grid-template-columns: 230px minmax(0, 1fr); gap: 64px; }
   .legal-toc { position: sticky; top: 24px; }
 }
+
+.settings-panels { max-width: 640px; }
+.settings-panels > .panel { max-width: none; }
+.settings-appearance .theme-label { justify-content: space-between; color: var(--muted); }
+.settings-appearance select { min-height: 44px; font-size: 1rem; }
+.settings-security .security-panel { margin-top: 18px; }
+.sidebar-logout { display: flex; align-items: center; justify-content: center; color: var(--muted); min-height: 44px; font-size: .7rem; cursor: pointer; padding: 4px 12px; }
+.sidebar-logout:hover { color: var(--negative-ink); }
+.finance-workspace { padding-bottom: calc(124px + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) {
+  .sidebar-logout { justify-content: flex-start; padding-left: 42px; min-height: 44px; font-size: .8rem; }
+  .finance-workspace { padding-bottom: 0; }
+}

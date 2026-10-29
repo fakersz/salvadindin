@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { LegalLinks } from "./LegalFooter";
+import { applyTheme, preferredTheme } from "./theme";
 
 export function Landing() {
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = useState(preferredTheme);
   return (
     <div className="landing-shell">
       <header className="auth-header">
@@ -15,9 +16,7 @@ export function Landing() {
             value={theme}
             onChange={(e) => {
               setTheme(e.target.value);
-              if (e.target.value === "system")
-                delete document.documentElement.dataset.theme;
-              else document.documentElement.dataset.theme = e.target.value;
+              applyTheme(e.target.value);
             }}
           >
             <option value="system">Sistema</option>
