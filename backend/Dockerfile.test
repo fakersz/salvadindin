@@ -6,6 +6,6 @@ RUN pip install --no-cache-dir --require-hashes -r requirements-dev.lock
 COPY app ./app
 COPY migrations ./migrations
 COPY tests ./tests
-COPY pyproject.toml alembic.ini ./
+COPY pyproject.toml alembic.ini logging.json ./
 USER 10001
 CMD ["pytest", "-q", "-p", "no:cacheprovider"]

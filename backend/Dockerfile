@@ -4,7 +4,7 @@ WORKDIR /app
 RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --no-create-home app
 COPY requirements.lock ./
 RUN pip install --require-hashes -r requirements.lock
-COPY --chown=app:app pyproject.toml alembic.ini ./
+COPY --chown=app:app pyproject.toml alembic.ini logging.json ./
 COPY --chown=app:app app ./app
 COPY --chown=app:app migrations ./migrations
 USER app

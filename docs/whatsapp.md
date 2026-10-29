@@ -195,3 +195,33 @@ Nenhum número real, dado financeiro real ou chamada real à Meta é usado nesse
 O gateway HTTPS descartável emitiu avisos `BrokenPipeError` quando o navegador
 cancelou requisições durante navegação; as três suítes concluíram com sucesso.
 Isso não ocorreu no backend ou no Nginx de produção.
+
+
+## Ativação e logs protegidos — 29/10/2026
+
+As cinco variáveis oficiais foram fornecidas pelo operador no arquivo privado.
+O backend foi recriado sozinho; a correspondência do ambiente carregado com o
+arquivo root:root 600 foi conferida sem exibir valores. Isso não comprova a
+validade do Access Token ou permissões da Meta.
+
+`compose.yaml` usa `/app/logging.json`: logs de acesso da aplicação preservam
+cliente, método, rota e status, omitindo integralmente a query. Logs de erro
+redigem os valores de segredos conhecidos e cabeçalhos sensíveis; exceções
+registram somente o tipo, sem traceback/payload potencialmente secreto.
+
+No Nginx, instalar também `infra/nginx/salvadindin-logging.conf` em
+`/etc/nginx/conf.d/salvadindin-logging.conf`, antes de usar o vhost deste repositório.
+O formato é aplicado somente aos vhosts SalvaDinDin, preserva método, URI sem
+query, status, tamanho, duração e status/duração do upstream. Não registra
+Cookie, Authorization, Referer, User-Agent, corpo ou argumentos. Erros brutos do
+Nginx desses dois vhosts vão a `/dev/null`, pois podem conter a URL completa;
+o diagnóstico HTTP permanece nos logs de acesso estruturados e nos logs
+sanitizados da aplicação. Configurações e logs dos outros projetos não mudam.
+
+Verificação objetiva HTTPS: GET correto 200 com challenge exato; GET incorreto
+403; POST sem assinatura, inválido e adulterado 403; envelope `entry: []`
+corretamente assinado 200. Marcadores de query, Cookie e Authorization e os
+segredos reais estiveram ausentes dos logs inspecionados. Nove testes locais
+focados em logs e saúde passaram. Nenhuma mensagem real, vínculo ou movimentação
+foi criado nos testes. Frontend e arquivo privado preservados. Ainda falta
+comprovar configuração/callback e fluxo real autorizado no painel da Meta.
