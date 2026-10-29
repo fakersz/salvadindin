@@ -163,31 +163,6 @@ a, button, select { outline-offset: 4px; }
 .finance-dialog > p { color: var(--muted); line-height: 1.6; margin: 20px 0; }
 .dialog-actions { display: flex; gap: 12px; align-items: center; }
 .button.danger { background: #b91c1c; }
-@media (max-width: 1100px) { .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .finance-main { padding: 28px; } .dashboard-columns { grid-template-columns: minmax(0, 1fr); gap: 0; } }
-@media (max-width: 700px) {
-  .finance-sidebar { width: 100%; inset: auto 0 0; padding: 8px 6px max(8px, env(safe-area-inset-bottom)); border-right: 0; border-top: 1px solid var(--line); background: var(--surface); }
-  .finance-sidebar > .brand { display: none; }
-  .finance-sidebar nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
-  .finance-sidebar nav a { text-align: center; padding: 11px 3px; font-size: .65rem; }
-  .security-link { font-size: .65rem; text-align: center; padding: 3px; margin: 0; }
-  .finance-workspace { margin-left: 0; padding-bottom: 100px; }
-  .finance-topbar { padding: 14px 18px; gap: 16px; min-height: 65px; }
-  .theme-label { font-size: .73rem; }
-  .finance-main { padding: 26px 16px; }
-  .page-heading { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .page-heading h1 { font-size: 1.6rem; }
-  .metric-grid { gap: 10px; }
-  .metric-card { padding: 16px 12px; }
-  .metric-card > strong { font-size: 1.2rem; }
-  .metric-card > span { font-size: .7rem; }
-  .panel { padding: 18px; }
-  .account-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .entry-value { margin-left: auto; }
-  .entry-row .row-actions { width: 100%; justify-content: flex-end; margin-top: 0; }
-  .dialog-backdrop { padding: 12px; }
-  .finance-dialog { padding: 22px; }
-}
 
 :root { --negative-ink: #b91c1c; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --negative-ink: #fca5a5; } }
@@ -270,36 +245,128 @@ a, button, select { outline-offset: 4px; }
 .landing-actions { display: flex; align-items: center; gap: 26px; margin-top: 32px; }
 .landing-actions .button { min-width: 125px; }
 .landing-footer { display: flex; justify-content: space-between; width: min(100%, 1160px); margin: auto; padding: 26px 32px; font-size: .73rem; color: var(--muted); }
-@media (max-width: 1100px) { .metric-card { padding: 22px; } .metric-card:nth-child(2) { border-right: 0; } .metric-card:nth-child(n+3) { border-top: 1px solid var(--line); } .finance-main { padding: 24px 30px 48px; } .finance-topbar { padding-inline: 30px; } .dashboard-columns { gap: 0; } }
-@media (max-width: 700px) {
-  .finance-sidebar { width: 100%; padding: 10px 8px max(8px, env(safe-area-inset-bottom)); }
-  .finance-sidebar nav { margin: 0; gap: 2px; }
-  .finance-sidebar nav a { flex-direction: column; gap: 6px; padding: 8px 2px; font-size: .65rem; border-radius: 8px; }
-  .nav-icon { width: 19px; height: 19px; }
-  .security-link { justify-content: center; font-size: .62rem; gap: 5px; padding: 4px 0 0; }
-  .security-link .nav-icon { width: 12px; height: 12px; }
-  .finance-workspace { margin: 0; padding-bottom: 110px; }
-  .finance-topbar { min-height: 62px; padding: 12px 18px; gap: 14px; }
-  .finance-main { padding: 22px 18px 36px; }
-  .page-heading { flex-direction: row; align-items: center; gap: 12px; margin-bottom: 24px; }
-  .page-heading h1 { font-size: 1.4rem; }
-  .page-heading .button { font-size: .72rem; padding: 9px 12px; min-height: 38px; }
-  .metric-grid { gap: 0; border-radius: 12px; }
-  .metric-card { padding: 20px 16px; gap: 12px; }
-  .metric-card > span { font-size: .7rem; }
-  .metric-card > strong { font-size: clamp(1rem, 4.6vw, 1.25rem); }
-  .panel { padding: 20px; }
-  .panel-heading a { font-size: .68rem; }
-  .quick-actions { gap: 4px; justify-content: space-between; }
-  .quick-actions .button { padding: 8px 7px; font-size: .75rem; }
-  .filters { padding: 0 0 18px; }
-  .landing-shell .auth-header { padding: 24px; }
-  .landing-main { padding: 72px 24px; }
-  .landing-footer { padding: 24px; }
-}
 
 .metric-card > strong, .account-balance, .entry-value { font-variant-numeric: tabular-nums; }
 .distribution meter::-webkit-meter-bar { background: var(--line); border: 0; border-radius: 8px; height: 4px; }
 .distribution meter::-webkit-meter-optimum-value { background: #4a8764; border-radius: 8px; }
 .distribution meter::-moz-meter-bar { background: #4a8764; }
-@media (max-width: 380px) { .page-heading { flex-wrap: wrap; } }
+
+/* Mobile first: touch navigation, a leading balance and bottom-sheet forms. */
+.nav-label-wide { display: none; }
+.finance-sidebar {
+  inset: auto 0 0;
+  width: 100%;
+  padding: 8px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  border-right: 0;
+  border-top: 1px solid var(--line);
+}
+.finance-sidebar > .brand { display: none; }
+.finance-sidebar nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0; gap: 2px; }
+.finance-sidebar nav a { flex-direction: column; justify-content: center; gap: 5px; min-height: 56px; padding: 6px 0; font-size: .6rem; text-align: center; }
+.finance-sidebar nav .security-link { margin: 0; }
+.nav-icon { width: 20px; height: 20px; }
+.finance-workspace { margin: 0; padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+.finance-topbar { min-height: 68px; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); gap: 8px; }
+.finance-topbar .user-label { font-size: .78rem; max-width: none; flex: 1; min-width: 0; }
+.finance-topbar .theme-label { gap: 2px; font-size: .72rem; }
+.finance-topbar .theme-label select { min-height: 44px; padding: 4px; }
+.text-button { min-height: 44px; min-width: 44px; }
+.finance-main { padding: 20px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left)); }
+.page-heading { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 24px; }
+.page-heading h1 { font-size: 1.45rem; }
+.page-heading .button { min-height: 44px; font-size: .78rem; padding: 10px 14px; }
+.month-control { font-size: .8rem; }
+.month-control input { min-height: 44px; font-size: 1rem; }
+.metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 16px; }
+.metric-card { padding: 18px 10px; gap: 10px; }
+.metric-card > span { font-size: .65rem; }
+.metric-card > strong { font-size: clamp(.9rem, 3.6vw, 1.2rem); }
+.metric-card.metric-0 { grid-column: 1 / -1; border-right: 0; padding: 24px; gap: 12px; }
+.metric-card.metric-0 > span { font-size: .8rem; }
+.metric-card.metric-0 > strong { font-size: clamp(1.7rem, 7.5vw, 2.3rem); }
+.panel { padding: 20px; }
+.account-grid, .dashboard-columns { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.quick-actions { gap: 4px; justify-content: space-between; }
+.quick-actions .button { min-height: 44px; padding: 8px; font-size: .75rem; }
+.panel-heading a { display: inline-flex; align-items: center; min-height: 44px; font-size: .72rem; }
+.entry-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; }
+.entry-info { min-width: 0; }
+.entry-value { text-align: right; max-width: 40vw; }
+.entry-row .row-actions { grid-column: 2 / -1; justify-content: flex-end; margin: 0; }
+.balance-list li > span, .balance-list li > strong, .distribution li > div > * { min-width: 0; overflow-wrap: anywhere; }
+.balance-list li > strong { text-align: right; }
+.row-actions { gap: 8px; }
+.row-actions button, .pagination button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px; font-size: .78rem; }
+.category-list li { flex-wrap: wrap; gap: 8px; }
+.category-list li > div:not(.row-actions) { min-width: 80px; }
+.filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; padding: 0 0 20px; }
+.filters > div { min-width: 0; }
+.filters input, .filters select, .field input, .finance-dialog select { font-size: 1rem; min-height: 48px; }
+.filters .text-button { justify-self: start; }
+.dialog-backdrop { align-items: flex-end; padding: 0; }
+.finance-dialog { width: 100%; max-height: 90dvh; border-radius: 22px 22px 0 0; padding: 24px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); overscroll-behavior-y: contain; scroll-padding-block: 20px; }
+.finance-dialog .icon-button { display: grid; place-items: center; min-width: 44px; min-height: 44px; }
+.auth-header { padding: max(16px, env(safe-area-inset-top)) 20px 16px; gap: 8px; }
+.auth-header .theme-label { font-size: .75rem; gap: 4px; }
+.auth-header select { min-height: 44px; }
+.auth-main { align-content: start; padding: 28px 20px 40px; }
+.auth-card { padding: 24px 0; border: 0; background: transparent; }
+.auth-card .auth-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.show-password { min-width: 68px; }
+.auth-card .security-panel { margin-top: 24px; }
+.landing-shell .auth-header { padding: 20px; }
+.landing-main { padding: 60px 24px; }
+.landing-footer { padding: 24px; }
+@media (min-width: 768px) {
+  .nav-label-wide { display: inline; }
+  .nav-label-short { display: none; }
+  .finance-sidebar { inset: 0 auto 0 0; width: 184px; padding: 32px 12px; border-top: 0; border-right: 1px solid var(--line); }
+  .finance-sidebar > .brand { display: flex; }
+  .finance-sidebar nav { display: flex; flex: 1; flex-direction: column; margin-top: 40px; gap: 5px; }
+  .finance-sidebar nav a { flex-direction: row; justify-content: flex-start; padding: 12px; min-height: 44px; font-size: .8rem; gap: 10px; text-align: left; }
+  .finance-sidebar nav .security-link { margin-top: auto; }
+  .finance-workspace { margin-left: 184px; padding-bottom: 0; }
+  .finance-topbar { min-height: 76px; padding: 16px 28px; gap: 20px; }
+  .finance-main { padding: 24px 28px 48px; }
+  .page-heading { flex-wrap: nowrap; }
+  .page-heading h1 { font-size: 1.75rem; }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric-card { padding: 24px; gap: 14px; }
+  .metric-card > span { font-size: .75rem; }
+  .metric-card > strong { font-size: clamp(1.2rem, 2.2vw, 1.8rem); }
+  .metric-card.metric-0 { grid-column: auto; border-right: 1px solid var(--line); padding: 24px; gap: 14px; }
+  .metric-card.metric-0 > span { font-size: .75rem; }
+  .metric-card.metric-0 > strong { font-size: clamp(1.2rem, 2.2vw, 1.8rem); }
+  .metric-card:nth-child(2) { border-right: 0; }
+  .metric-card:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .panel { padding: 24px; }
+  .quick-actions { justify-content: flex-start; gap: 10px; }
+  .account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .entry-row { display: flex; gap: 12px; }
+  .entry-info { flex: 1; min-width: 100px; }
+  .entry-value { max-width: 100%; }
+  .entry-row .row-actions { margin-left: auto; }
+  .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .filters input, .filters select { font-size: .85rem; }
+  .dialog-backdrop { align-items: center; padding: 24px; }
+  .finance-dialog { width: min(100%, 500px); padding: 26px; border-radius: 16px; }
+  .auth-header { padding: 24px; }
+  .auth-main { align-content: center; padding: 32px 24px 56px; }
+  .auth-card { padding: 36px; border: 1px solid var(--line); background: var(--surface); }
+  .landing-shell .auth-header { padding: 32px; }
+  .landing-main { padding: 80px 32px 100px; }
+  .landing-footer { padding: 26px 32px; }
+}
+@media (min-width: 1200px) {
+  .finance-sidebar { width: 208px; padding: 32px 18px; }
+  .finance-workspace { margin-left: 208px; }
+  .finance-topbar { padding-inline: 48px; }
+  .finance-main { padding: 24px 48px 56px; }
+  .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .metric-card, .metric-card.metric-0 { padding: 26px 22px; }
+  .metric-card:nth-child(2) { border-right: 1px solid var(--line); }
+  .metric-card:nth-child(n+3) { border-top: 0; }
+  .metric-card > strong, .metric-card.metric-0 > strong { font-size: clamp(1.2rem, 1.9vw, 1.8rem); }
+  .account-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dashboard-columns { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+}

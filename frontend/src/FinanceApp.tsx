@@ -656,6 +656,7 @@ export function FinanceApp({
     ["/app/accounts", "Contas", "accounts"],
     ["/app/transactions", "Movimentações", "transactions"],
     ["/app/categories", "Categorias", "categories"],
+    ["/app/security", "Segurança", "security"],
   ];
   return (
     <div className="finance-shell">
@@ -668,17 +669,18 @@ export function FinanceApp({
             <a
               key={href}
               href={href}
+              aria-label={label}
+              className={key === "security" ? "security-link" : undefined}
               aria-current={section === key ? "page" : undefined}
             >
               <NavIcon name={key} />
-              <span>{label}</span>
+              <span className="nav-label-wide">{label}</span>
+              <span className="nav-label-short">
+                {key === "dashboard" ? "Início" : key === "transactions" ? "Extrato" : label}
+              </span>
             </a>
           ))}
         </nav>
-        <a className="security-link" href="/app/security">
-          <NavIcon name="security" />
-          <span>Segurança</span>
-        </a>
       </aside>
       <div className="finance-workspace">
         <header className="finance-topbar">
